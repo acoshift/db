@@ -32,16 +32,12 @@ import (
 	"time"
 
 	"github.com/acoshift/db"
-	"github.com/acoshift/db/mssql"
-	"github.com/acoshift/db/mysql"
 	"github.com/acoshift/db/postgresql"
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/mgo.v2/bson"
 )
 
 var wrappers = []string{
-	mssql.Adapter,
-	mysql.Adapter,
 	postgresql.Adapter,
 }
 
@@ -72,15 +68,6 @@ func init() {
 	log.Printf("Running tests against host %s.\n", host)
 
 	settings = map[string]db.ConnectionURL{
-		`mysql`: &mysql.ConnectionURL{
-			Database: `upperio_tests`,
-			Host:     host,
-			User:     `upperio_tests`,
-			Password: `upperio_secret`,
-			Options: map[string]string{
-				"parseTime": "true",
-			},
-		},
 		`postgresql`: &postgresql.ConnectionURL{
 			Database: `upperio_tests`,
 			Host:     host,
@@ -89,12 +76,6 @@ func init() {
 			Options: map[string]string{
 				"timezone": "UTC",
 			},
-		},
-		`mssql`: &mssql.ConnectionURL{
-			Database: `upperio_tests`,
-			Host:     host,
-			User:     `upperio_tests`,
-			Password: `upperio_Secre3t`,
 		},
 	}
 
@@ -156,124 +137,6 @@ var setupFn = map[string]func(driver interface{}) error{
 			_, err = sqld.Exec(`CREATE TABLE "CaSe_TesT" (
 					"id" SERIAL PRIMARY KEY,
 					"case_test" VARCHAR(60)
-			)`)
-			if err != nil {
-				return err
-			}
-
-			return nil
-		}
-		return fmt.Errorf("Expecting *sql.DB got %T (%#v).", driver, driver)
-	},
-	`mysql`: func(driver interface{}) error {
-		if sqld, ok := driver.(*sql.DB); ok {
-			var err error
-
-			_, err = sqld.Exec(`DROP TABLE IF EXISTS ` + "`" + `birthdays` + "`" + ``)
-			if err != nil {
-				return err
-			}
-			_, err = sqld.Exec(`CREATE TABLE ` + "`" + `birthdays` + "`" + ` (
-				id BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT, PRIMARY KEY(id),
-				name VARCHAR(50),
-				born DATE,
-				born_ut BIGINT(20) SIGNED
-			) CHARSET=utf8`)
-			if err != nil {
-				return err
-			}
-
-			_, err = sqld.Exec(`DROP TABLE IF EXISTS ` + "`" + `fibonacci` + "`" + ``)
-			if err != nil {
-				return err
-			}
-			_, err = sqld.Exec(`CREATE TABLE ` + "`" + `fibonacci` + "`" + ` (
-				id BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT, PRIMARY KEY(id),
-				input BIGINT(20) UNSIGNED NOT NULL,
-				output BIGINT(20) UNSIGNED NOT NULL
-			) CHARSET=utf8`)
-			if err != nil {
-				return err
-			}
-
-			_, err = sqld.Exec(`DROP TABLE IF EXISTS ` + "`" + `is_even` + "`" + ``)
-			if err != nil {
-				return err
-			}
-			_, err = sqld.Exec(`CREATE TABLE ` + "`" + `is_even` + "`" + ` (
-				input BIGINT(20) UNSIGNED NOT NULL,
-				is_even TINYINT(1)
-			) CHARSET=utf8`)
-			if err != nil {
-				return err
-			}
-
-			_, err = sqld.Exec(`DROP TABLE IF EXISTS ` + "`" + `CaSe_TesT` + "`" + ``)
-			if err != nil {
-				return err
-			}
-			_, err = sqld.Exec(`CREATE TABLE ` + "`" + `CaSe_TesT` + "`" + ` (
-				id BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT, PRIMARY KEY(id),
-				case_test VARCHAR(60)
-			) CHARSET=utf8`)
-			if err != nil {
-				return err
-			}
-
-			return nil
-		}
-		return fmt.Errorf("Expecting *sql.DB got %T (%#v).", driver, driver)
-	},
-	`mssql`: func(driver interface{}) error {
-		if sqld, ok := driver.(*sql.DB); ok {
-			var err error
-
-			_, err = sqld.Exec(`DROP TABLE IF EXISTS [birthdays]`)
-			if err != nil {
-				return err
-			}
-			_, err = sqld.Exec(`CREATE TABLE [birthdays] (
-				id BIGINT PRIMARY KEY NOT NULL IDENTITY(1,1),
-				name NVARCHAR(50),
-				born DATETIME,
-				born_ut BIGINT
-			)`)
-			if err != nil {
-				return err
-			}
-
-			_, err = sqld.Exec(`DROP TABLE IF EXISTS [fibonacci]`)
-			if err != nil {
-				return err
-			}
-			_, err = sqld.Exec(`CREATE TABLE [fibonacci] (
-				id BIGINT PRIMARY KEY NOT NULL IDENTITY(1,1),
-				input BIGINT NOT NULL,
-				output BIGINT NOT NULL
-			)`)
-			if err != nil {
-				return err
-			}
-
-			_, err = sqld.Exec(`DROP TABLE IF EXISTS [is_even]`)
-			if err != nil {
-				return err
-			}
-			_, err = sqld.Exec(`CREATE TABLE [is_even] (
-				input BIGINT NOT NULL,
-				is_even TINYINT
-			)`)
-			if err != nil {
-				return err
-			}
-
-			_, err = sqld.Exec(`DROP TABLE IF EXISTS [CaSe_TesT]`)
-			if err != nil {
-				return err
-			}
-			_, err = sqld.Exec(`CREATE TABLE [CaSe_TesT] (
-				id BIGINT PRIMARY KEY NOT NULL IDENTITY(1,1),
-				case_test NVARCHAR(60)
 			)`)
 			if err != nil {
 				return err
@@ -588,14 +451,7 @@ func TestFibonacci(t *testing.T) {
 			)
 
 			// Testing sort by function.
-			switch wrapper {
-			case `postgresql`:
-				res = res.OrderBy(db.Raw(`RANDOM()`))
-			case `mysql`:
-				res = res.OrderBy(db.Raw(`RAND()`))
-			case `sqlserver`:
-				res = res.OrderBy(db.Raw(`NEWID()`))
-			}
+			res = res.OrderBy(db.Raw(`RANDOM()`))
 
 			total, err = res.Count()
 
@@ -1251,35 +1107,33 @@ func TestComparisonOperators(t *testing.T) {
 			assert.Equal(t, "Daria López", items[0].Name)
 		}
 
-		if wrapper != "mssql" {
-			// Test: regexp
-			{
-				var items []birthday
-				err := birthdays.Find(db.And(
-					db.Cond{"name": db.RegExp("^[D|C|M]")},
-				)).OrderBy("name").All(&items)
-				assert.NoError(t, err)
-				assert.Equal(t, 3, len(items))
+		// Test: regexp
+		{
+			var items []birthday
+			err := birthdays.Find(db.And(
+				db.Cond{"name": db.RegExp("^[D|C|M]")},
+			)).OrderBy("name").All(&items)
+			assert.NoError(t, err)
+			assert.Equal(t, 3, len(items))
 
-				assert.Equal(t, "Colin", items[0].Name)
-				assert.Equal(t, "Daria López", items[1].Name)
-				assert.Equal(t, "Marie Smith", items[2].Name)
-			}
+			assert.Equal(t, "Colin", items[0].Name)
+			assert.Equal(t, "Daria López", items[1].Name)
+			assert.Equal(t, "Marie Smith", items[2].Name)
+		}
 
-			// Test: not regexp
-			{
-				var items []birthday
-				names := []string{"Daria López", "Colin", "Marie Smith"}
-				err := birthdays.Find(db.And(
-					db.Cond{"name": db.NotRegExp("^[D|C|M]")},
-				)).OrderBy("name").All(&items)
-				assert.NoError(t, err)
-				assert.Equal(t, 5, len(items))
+		// Test: not regexp
+		{
+			var items []birthday
+			names := []string{"Daria López", "Colin", "Marie Smith"}
+			err := birthdays.Find(db.And(
+				db.Cond{"name": db.NotRegExp("^[D|C|M]")},
+			)).OrderBy("name").All(&items)
+			assert.NoError(t, err)
+			assert.Equal(t, 5, len(items))
 
-				for _, item := range items {
-					for _, name := range names {
-						assert.NotEqual(t, item.Name, name)
-					}
+			for _, item := range items {
+				for _, name := range names {
+					assert.NotEqual(t, item.Name, name)
 				}
 			}
 		}
