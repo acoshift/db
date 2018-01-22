@@ -33,26 +33,24 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/satori/go.uuid"
-	"github.com/stretchr/testify/assert"
 	"github.com/acoshift/db"
 	"github.com/acoshift/db/internal/sqladapter"
 	"github.com/acoshift/db/lib/sqlbuilder"
+	"github.com/satori/go.uuid"
+	"github.com/stretchr/testify/assert"
 )
 
 const (
 	testTimeZone = "Canada/Eastern"
 )
 
-var settings = ConnectionURL{
-	Database: os.Getenv("DB_NAME"),
-	User:     os.Getenv("DB_USERNAME"),
-	Password: os.Getenv("DB_PASSWORD"),
-	Host:     os.Getenv("DB_HOST") + ":" + os.Getenv("DB_PORT"),
-	Options: map[string]string{
-		"timezone": testTimeZone,
-	},
-}
+var settings = fmt.Sprintf("postgres://%s:%s@%s/%s?sslmode=disable&timezone=%s",
+	os.Getenv("DB_USERNAME"),
+	os.Getenv("DB_PASSWORD"),
+	os.Getenv("DB_HOST")+":"+os.Getenv("DB_PORT"),
+	os.Getenv("DB_NAME"),
+	testTimeZone,
+)
 
 func tearUp() error {
 	sess := mustOpen()
@@ -1079,7 +1077,7 @@ func TestTextMode_Issue391(t *testing.T) {
 
 func TestBinaryMode_Issue391(t *testing.T) {
 	settingsWithBinaryMode := settings
-	settingsWithBinaryMode.Options["binary_parameters"] = "yes"
+	settingsWithBinaryMode += "&binary_parameters=yes"
 
 	sess, err := Open(settingsWithBinaryMode)
 	if err != nil {

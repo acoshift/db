@@ -50,7 +50,7 @@ type PartialDatabase interface {
 	Collections() ([]string, error)
 
 	// Open opens a new connection
-	Open(db.ConnectionURL) error
+	Open(string) error
 
 	// TableExists returns an error if the given table does not exist.
 	TableExists(name string) error
@@ -69,7 +69,7 @@ type PartialDatabase interface {
 	CompileStatement(stmt *exql.Statement, args []interface{}) (string, []interface{})
 
 	// ConnectionURL returns the database's connection URL, if any.
-	ConnectionURL() db.ConnectionURL
+	ConnectionURL() string
 
 	// Err wraps specific database errors (given in string form) and transforms them
 	// into error values.

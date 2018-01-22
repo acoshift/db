@@ -48,30 +48,25 @@ type database struct {
 
 	sqlbuilder.SQLBuilder
 
-	connURL db.ConnectionURL
+	connURL string
 	mu      sync.Mutex
 }
 
-var (
-	_ = sqlbuilder.Database(&database{})
-	_ = sqladapter.Database(&database{})
-)
-
 // newDatabase creates a new *database session for internal use.
-func newDatabase(settings db.ConnectionURL) *database {
+func newDatabase(settings string) *database {
 	return &database{
 		connURL: settings,
 	}
 }
 
 // ConnectionURL returns this database session's connection URL, if any.
-func (d *database) ConnectionURL() db.ConnectionURL {
+func (d *database) ConnectionURL() string {
 	return d.connURL
 }
 
 // Open attempts to open a connection with the database server.
-func (d *database) Open(connURL db.ConnectionURL) error {
-	if connURL == nil {
+func (d *database) Open(connURL string) error {
+	if connURL == "" {
 		return db.ErrMissingConnURL
 	}
 	d.connURL = connURL
@@ -87,7 +82,7 @@ func (d *database) NewTx(ctx context.Context) (sqlbuilder.Tx, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &tx{DatabaseTx: nTx}, nil
+	return nTx, nil
 }
 
 // Collections returns a list of non-system tables from the database.
@@ -119,7 +114,7 @@ func (d *database) open() error {
 	d.SQLBuilder = sqlbuilder.WithSession(d.BaseDatabase, template)
 
 	connFn := func() error {
-		sess, err := sql.Open("postgres", d.ConnectionURL().String())
+		sess, err := sql.Open("postgres", d.ConnectionURL())
 		if err == nil {
 			sess.SetConnMaxLifetime(db.DefaultSettings.ConnMaxLifetime())
 			sess.SetMaxIdleConns(db.DefaultSettings.MaxIdleConns())

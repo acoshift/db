@@ -24,8 +24,6 @@ package postgresql // import "github.com/acoshift/db/postgresql"
 import (
 	"database/sql"
 
-	"github.com/acoshift/db"
-
 	"github.com/acoshift/db/internal/sqladapter"
 	"github.com/acoshift/db/lib/sqlbuilder"
 )
@@ -48,7 +46,7 @@ func init() {
 // You may call Open() just once and use it on multiple goroutines on a
 // long-running program. See https://golang.org/pkg/database/sql/#Open and
 // http://go-database-sql.org/accessing.html
-func Open(settings db.ConnectionURL) (sqlbuilder.Database, error) {
+func Open(settings string) (sqlbuilder.Database, error) {
 	d := newDatabase(settings)
 	if err := d.Open(settings); err != nil {
 		return nil, err
@@ -59,7 +57,7 @@ func Open(settings db.ConnectionURL) (sqlbuilder.Database, error) {
 // NewTx wraps a regular *sql.Tx transaction and returns a new upper-db
 // transaction backed by it.
 func NewTx(sqlTx *sql.Tx) (sqlbuilder.Tx, error) {
-	d := newDatabase(nil)
+	d := newDatabase("")
 
 	// Binding with sqladapter's logic.
 	d.BaseDatabase = sqladapter.NewBaseDatabase(d)
@@ -72,13 +70,13 @@ func NewTx(sqlTx *sql.Tx) (sqlbuilder.Tx, error) {
 	}
 
 	newTx := sqladapter.NewDatabaseTx(d)
-	return &tx{DatabaseTx: newTx}, nil
+	return newTx, nil
 }
 
 // New wraps a regular *sql.DB session and creates a new upper-db session
 // backed by it.
 func New(sess *sql.DB) (sqlbuilder.Database, error) {
-	d := newDatabase(nil)
+	d := newDatabase("")
 
 	// Binding with sqladapter's logic.
 	d.BaseDatabase = sqladapter.NewBaseDatabase(d)

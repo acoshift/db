@@ -34,7 +34,7 @@ type Database interface {
 	Driver() interface{}
 
 	// Open attempts to establish a connection with a DBMS.
-	Open(ConnectionURL) error
+	Open(string) error
 
 	// Close closes the currently active connection to the database and clears
 	// caches.
@@ -50,7 +50,7 @@ type Database interface {
 	Name() string
 
 	// ConnectionURL returns the data used to set up the adapter.
-	ConnectionURL() ConnectionURL
+	ConnectionURL() string
 
 	// ClearCache clears all the cache mechanisms the adapter is using.
 	ClearCache()

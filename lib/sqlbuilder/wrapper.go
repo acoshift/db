@@ -109,7 +109,7 @@ type Database interface {
 type AdapterFuncMap struct {
 	New   func(sqlDB *sql.DB) (Database, error)
 	NewTx func(sqlTx *sql.Tx) (Tx, error)
-	Open  func(settings db.ConnectionURL) (Database, error)
+	Open  func(settings string) (Database, error)
 }
 
 // RegisterAdapter registers a SQL database adapter. This function must be
@@ -140,7 +140,7 @@ func adapter(name string) AdapterFuncMap {
 }
 
 // Open opens a SQL database.
-func Open(adapterName string, settings db.ConnectionURL) (Database, error) {
+func Open(adapterName string, settings string) (Database, error) {
 	return adapter(adapterName).Open(settings)
 }
 
@@ -175,7 +175,7 @@ func missingAdapter(name string) AdapterFuncMap {
 		NewTx: func(*sql.Tx) (Tx, error) {
 			return nil, err
 		},
-		Open: func(db.ConnectionURL) (Database, error) {
+		Open: func(string) (Database, error) {
 			return nil, err
 		},
 	}
