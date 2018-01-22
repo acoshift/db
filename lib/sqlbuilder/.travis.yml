@@ -3,18 +3,11 @@ sudo: false
 language: go
 
 go:
-  - 1.3
-  - 1.3.1
-  - 1.3.2
-  - 1.3.3
-  - 1.4
-  - 1.4.1
-  - 1.4.2
-  - 1.5
-  - 1.5.1
+  - 1.8.x
+  - 1.9.x
 
 install:
-  - mkdir -p $GOPATH/src/upper.io
+  - mkdir -p $GOPATH/src/github.com/acoshift
   - mv $PWD $GOPATH/src/github.com/acoshift/db/lib/sqlbuilder
   - cd $GOPATH/src/github.com/acoshift/db/lib/sqlbuilder
   - go get -v -d -t ./...
