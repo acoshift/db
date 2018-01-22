@@ -36,6 +36,7 @@ import (
 	"github.com/acoshift/db"
 	"github.com/acoshift/db/internal/sqladapter"
 	"github.com/acoshift/db/lib/sqlbuilder"
+	"github.com/lib/pq"
 	"github.com/satori/go.uuid"
 	"github.com/stretchr/testify/assert"
 )
@@ -280,7 +281,7 @@ func (u *uint8Compat) Scan(src interface{}) error {
 }
 
 func (u uint8CompatArray) WrapValue(src interface{}) interface{} {
-	return Array(src)
+	return pq.Array(src)
 }
 
 func (u *int64Compat) Scan(src interface{}) error {
@@ -302,15 +303,15 @@ func (u *int64Compat) Scan(src interface{}) error {
 }
 
 func (u int64CompatArray) WrapValue(src interface{}) interface{} {
-	return Array(src)
+	return pq.Array(src)
 }
 
 func testPostgreSQLTypes(t *testing.T, sess sqlbuilder.Database) {
 
 	type PGTypeInline struct {
-		IntegerArrayPtr *Int64Array  `db:"integer_array_ptr,omitempty"`
-		StringArrayPtr  *StringArray `db:"string_array_ptr,omitempty"`
-		JSONBMapPtr     *JSONBMap    `db:"jsonb_map_ptr,omitempty"`
+		IntegerArrayPtr *pq.Int64Array  `db:"integer_array_ptr,omitempty"`
+		StringArrayPtr  *pq.StringArray `db:"string_array_ptr,omitempty"`
+		JSONBMapPtr     *JSONBMap       `db:"jsonb_map_ptr,omitempty"`
 	}
 
 	type PGTypeAutoInline struct {
@@ -330,9 +331,9 @@ func testPostgreSQLTypes(t *testing.T, sess sqlbuilder.Database) {
 		Int64Value      int64Compat      `db:"int64_value"`
 		Int64ValueArray int64CompatArray `db:"int64_value_array"`
 
-		IntegerArray Int64Array  `db:"integer_array"`
-		StringArray  StringArray `db:"string_array,stringarray"`
-		JSONBMap     JSONBMap    `db:"jsonb_map"`
+		IntegerArray pq.Int64Array  `db:"integer_array"`
+		StringArray  pq.StringArray `db:"string_array,stringarray"`
+		JSONBMap     JSONBMap       `db:"jsonb_map"`
 
 		PGTypeInline `db:",inline"`
 
@@ -373,8 +374,8 @@ func testPostgreSQLTypes(t *testing.T, sess sqlbuilder.Database) {
 	stringValue := string("ten")
 	decimalValue := float64(10.0)
 
-	integerArrayValue := Int64Array{1, 2, 3, 4}
-	stringArrayValue := StringArray{"a", "b", "c"}
+	integerArrayValue := pq.Int64Array{1, 2, 3, 4}
+	stringArrayValue := pq.StringArray{"a", "b", "c"}
 	jsonbMapValue := JSONBMap{"Hello": "World"}
 
 	testValue := "Hello world!"
@@ -438,7 +439,7 @@ func testPostgreSQLTypes(t *testing.T, sess sqlbuilder.Database) {
 		},
 		PGType{
 			PGTypeAutoInline: PGTypeAutoInline{
-				AutoIntegerArray: Int64Array{1, 2, 3, 4},
+				AutoIntegerArray: pq.Int64Array{1, 2, 3, 4},
 				AutoStringArray:  nil,
 			},
 		},
@@ -758,10 +759,10 @@ func TestOptionTypes(t *testing.T) {
 
 	// An option type to pointer jsonb field
 	type optionType2 struct {
-		ID       int64       `db:"id,omitempty"`
-		Name     string      `db:"name"`
-		Tags     StringArray `db:"tags"`
-		Settings *JSONBMap   `db:"settings"`
+		ID       int64          `db:"id,omitempty"`
+		Name     string         `db:"name"`
+		Tags     pq.StringArray `db:"tags"`
+		Settings *JSONBMap      `db:"settings"`
 	}
 
 	item2 := optionType2{
@@ -804,10 +805,10 @@ func TestOptionTypes(t *testing.T) {
 
 	// An option type to pointer string array field
 	type optionType3 struct {
-		ID       int64        `db:"id,omitempty"`
-		Name     string       `db:"name"`
-		Tags     *StringArray `db:"tags"`
-		Settings JSONBMap     `db:"settings"`
+		ID       int64           `db:"id,omitempty"`
+		Name     string          `db:"name"`
+		Tags     *pq.StringArray `db:"tags"`
+		Settings JSONBMap        `db:"settings"`
 	}
 
 	item3 := optionType3{
@@ -850,10 +851,10 @@ func TestOptionTypeJsonbStruct(t *testing.T) {
 	assert.NoError(t, err)
 
 	type OptionType struct {
-		ID       int64       `db:"id,omitempty"`
-		Name     string      `db:"name"`
-		Tags     StringArray `db:"tags"`
-		Settings Settings    `db:"settings"`
+		ID       int64          `db:"id,omitempty"`
+		Name     string         `db:"name"`
+		Tags     pq.StringArray `db:"tags"`
+		Settings Settings       `db:"settings"`
 	}
 
 	item1 := &OptionType{
@@ -984,12 +985,12 @@ func TestUUIDInsert_Issue370(t *testing.T) {
 
 	{
 		type itemT struct {
-			ID   Int64Array `db:"id"`
-			Name string     `db:"name"`
+			ID   pq.Int64Array `db:"id"`
+			Name string        `db:"name"`
 		}
 
 		item1 := itemT{
-			ID:   Int64Array{1, 2, 3},
+			ID:   pq.Int64Array{1, 2, 3},
 			Name: "Vojtech",
 		}
 

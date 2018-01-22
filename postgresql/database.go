@@ -39,7 +39,7 @@ import (
 	"github.com/acoshift/db/internal/sqladapter/compat"
 	"github.com/acoshift/db/internal/sqladapter/exql"
 	"github.com/acoshift/db/lib/sqlbuilder"
-	_ "github.com/lib/pq" // PostgreSQL driver.
+	"github.com/lib/pq" // PostgreSQL driver.
 )
 
 // database is the actual implementation of Database
@@ -155,30 +155,30 @@ func (d *database) ConvertValues(values []interface{}) []interface{} {
 			// Handled by pq.
 		case string, bool, int, uint, int64, uint64, int32, uint32, int16, uint16, int8, uint8, float32, float64, []uint8, driver.Valuer, *driver.Valuer, time.Time:
 			// Handled by pq.
-		case StringArray, Int64Array, BoolArray, GenericArray, Float64Array, JSONBMap, JSONB:
+		case pq.StringArray, pq.Int64Array, pq.BoolArray, pq.GenericArray, pq.Float64Array, JSONBMap, JSONB:
 			// Already with scanner/valuer.
-		case *StringArray, *Int64Array, *BoolArray, *GenericArray, *Float64Array, *JSONBMap, *JSONB:
+		case *pq.StringArray, *pq.Int64Array, *pq.BoolArray, *pq.GenericArray, *pq.Float64Array, *JSONBMap, *JSONB:
 			// Already with scanner/valuer.
 
 		case *[]int64:
-			values[i] = (*Int64Array)(v)
+			values[i] = (*pq.Int64Array)(v)
 		case *[]string:
-			values[i] = (*StringArray)(v)
+			values[i] = (*pq.StringArray)(v)
 		case *[]float64:
-			values[i] = (*Float64Array)(v)
+			values[i] = (*pq.Float64Array)(v)
 		case *[]bool:
-			values[i] = (*BoolArray)(v)
+			values[i] = (*pq.BoolArray)(v)
 		case *map[string]interface{}:
 			values[i] = (*JSONBMap)(v)
 
 		case []int64:
-			values[i] = (*Int64Array)(&v)
+			values[i] = (*pq.Int64Array)(&v)
 		case []string:
-			values[i] = (*StringArray)(&v)
+			values[i] = (*pq.StringArray)(&v)
 		case []float64:
-			values[i] = (*Float64Array)(&v)
+			values[i] = (*pq.Float64Array)(&v)
 		case []bool:
-			values[i] = (*BoolArray)(&v)
+			values[i] = (*pq.BoolArray)(&v)
 		case map[string]interface{}:
 			values[i] = (*JSONBMap)(&v)
 

@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/acoshift/db"
+	"github.com/lib/pq"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -31,9 +32,9 @@ func TestStringAndInt64Array(t *testing.T) {
 	assert.NoError(t, err)
 
 	type arrayType struct {
-		ID       int64       `db:"id,pk"`
-		Integers Int64Array  `db:"integers"`
-		Strings  StringArray `db:"strings"`
+		ID       int64          `db:"id,pk"`
+		Integers pq.Int64Array  `db:"integers"`
+		Strings  pq.StringArray `db:"strings"`
 	}
 
 	tt := []arrayType{
