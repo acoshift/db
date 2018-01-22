@@ -75,7 +75,7 @@ func NewTx(sqlTx *sql.Tx) (sqlbuilder.Tx, error) {
 
 // New wraps a regular *sql.DB session and creates a new upper-db session
 // backed by it.
-func New(sess *sql.DB) (sqlbuilder.Database, error) {
+func New(sess *sql.DB) sqlbuilder.Database {
 	d := newDatabase("")
 
 	// Binding with sqladapter's logic.
@@ -84,8 +84,7 @@ func New(sess *sql.DB) (sqlbuilder.Database, error) {
 	// Binding with sqlbuilder.
 	d.SQLBuilder = sqlbuilder.WithSession(d.BaseDatabase, template)
 
-	if err := d.BaseDatabase.BindSession(sess); err != nil {
-		return nil, err
-	}
-	return d, nil
+	d.BaseDatabase.BindSession(sess)
+
+	return d
 }

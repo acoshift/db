@@ -119,7 +119,8 @@ func (d *database) open() error {
 			sess.SetConnMaxLifetime(db.DefaultSettings.ConnMaxLifetime())
 			sess.SetMaxIdleConns(db.DefaultSettings.MaxIdleConns())
 			sess.SetMaxOpenConns(db.DefaultSettings.MaxOpenConns())
-			return d.BaseDatabase.BindSession(sess)
+			d.BaseDatabase.BindSession(sess)
+			return nil
 		}
 		return err
 	}
@@ -252,23 +253,6 @@ func (d *database) NewDatabaseTx(ctx context.Context) (sqladapter.DatabaseTx, er
 	}
 
 	return sqladapter.NewDatabaseTx(clone), nil
-}
-
-// LookupName looks for the name of the database and it's often used as a
-// test to determine if the connection settings are valid.
-func (d *database) LookupName() (string, error) {
-	q := d.Select(db.Raw("CURRENT_DATABASE() AS name"))
-
-	iter := q.Iterator()
-	defer iter.Close()
-
-	if iter.Next() {
-		var name string
-		err := iter.Scan(&name)
-		return name, err
-	}
-
-	return "", iter.Err()
 }
 
 // TableExists returns an error if the given table name does not exist on the

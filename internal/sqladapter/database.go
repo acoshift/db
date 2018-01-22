@@ -55,9 +55,6 @@ type PartialDatabase interface {
 	// TableExists returns an error if the given table does not exist.
 	TableExists(name string) error
 
-	// LookupName returns the name of the database.
-	LookupName() (string, error)
-
 	// PrimaryKeys returns all primary keys on the table.
 	PrimaryKeys(name string) ([]string, error)
 
@@ -105,7 +102,7 @@ type BaseDatabase interface {
 	WaitForConnection(func() error) error
 
 	// BindSession sets the *sql.DB the session will use.
-	BindSession(*sql.DB) error
+	BindSession(*sql.DB)
 
 	// Session returns the *sql.DB the session is using.
 	Session() *sql.DB
@@ -243,32 +240,16 @@ func (d *database) Name() string {
 	d.mu.Lock()
 	defer d.mu.Unlock()
 
-	if d.name == "" {
-		d.name, _ = d.PartialDatabase.LookupName()
-	}
-
 	return d.name
 }
 
 // BindSession binds a *sql.DB into *database
-func (d *database) BindSession(sess *sql.DB) error {
+func (d *database) BindSession(sess *sql.DB) {
 	d.sessMu.Lock()
 	d.sess = sess
 	d.sessMu.Unlock()
 
-	// if err := d.Ping(); err != nil {
-	// 	return err
-	// }
-
 	d.sessID = newSessionID()
-	name, err := d.PartialDatabase.LookupName()
-	if err != nil {
-		return err
-	}
-
-	d.name = name
-
-	return nil
 }
 
 // SetConnMaxLifetime sets the maximum amount of time a connection may be

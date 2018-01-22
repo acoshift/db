@@ -107,7 +107,7 @@ type Database interface {
 // AdapterFuncMap is a struct that defines a set of functions that adapters
 // need to provide.
 type AdapterFuncMap struct {
-	New   func(sqlDB *sql.DB) (Database, error)
+	New   func(sqlDB *sql.DB) Database
 	NewTx func(sqlTx *sql.Tx) (Tx, error)
 	Open  func(settings string) (Database, error)
 }
@@ -151,7 +151,7 @@ func Open(adapterName string, settings string) (Database, error) {
 // This method is internally used by upper-db to create a builder backed by the
 // given database.  You may want to use your adapter's New function instead of
 // this one.
-func New(adapterName string, sqlDB *sql.DB) (Database, error) {
+func New(adapterName string, sqlDB *sql.DB) Database {
 	return adapter(adapterName).New(sqlDB)
 }
 
@@ -169,8 +169,8 @@ func NewTx(adapterName string, sqlTx *sql.Tx) (Tx, error) {
 func missingAdapter(name string) AdapterFuncMap {
 	err := fmt.Errorf("upper: Missing SQL adapter %q, forgot to import?", name)
 	return AdapterFuncMap{
-		New: func(*sql.DB) (Database, error) {
-			return nil, err
+		New: func(*sql.DB) Database {
+			return nil
 		},
 		NewTx: func(*sql.Tx) (Tx, error) {
 			return nil, err
