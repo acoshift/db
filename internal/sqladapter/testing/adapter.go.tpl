@@ -238,10 +238,6 @@ func TestExpectCursorError(t *testing.T) {
 }
 
 func TestInsertDefault(t *testing.T) {
-	if Adapter == "ql" {
-		t.Skip("Currently not supported.")
-	}
-
 	sess := mustOpen()
 
 	artist := sess.Collection("artist")
@@ -453,9 +449,7 @@ func TestInsertIntoArtistsTable(t *testing.T) {
 
 	id, err = artist.Insert(&itemStruct3)
 	assert.NoError(t, err)
-	if Adapter != "ql" {
-		assert.NotZero(t, id) // QL always inserts an ID.
-	}
+	assert.NotZero(t, id)
 
 	// Counting elements, must be exactly 4 elements.
 	count, err := artist.Find().Count()
@@ -508,18 +502,14 @@ func TestGetOneResult(t *testing.T) {
 	assert.NoError(t, err)
 
 	assert.NotZero(t, someArtist.Name)
-	if Adapter != "ql" {
-		assert.NotZero(t, someArtist.ID)
-	}
+	assert.NotZero(t, someArtist.ID)
 
 	// Fetching a pointer to a pointer.
 	var someArtistObj *artistType
 	err = artist.Find().Limit(1).One(&someArtistObj)
 	assert.NoError(t, err)
 	assert.NotZero(t, someArtist.Name)
-	if Adapter != "ql" {
-		assert.NotZero(t, someArtist.ID)
-	}
+	assert.NotZero(t, someArtist.ID)
 
 	assert.NoError(t, cleanUpCheck(sess))
 	assert.NoError(t, sess.Close())
@@ -550,10 +540,6 @@ func TestGetResultsOneByOne(t *testing.T) {
 
 	res := artist.Find()
 
-	if Adapter == "ql" {
-		res = res.Select("id() as id", "name")
-	}
-
 	err := res.Err()
 	assert.NoError(t, err)
 
@@ -575,10 +561,6 @@ func TestGetResultsOneByOne(t *testing.T) {
 
 	res = artist.Find()
 
-	if Adapter == "ql" {
-		res = res.Select("id() as id", "name")
-	}
-
 	for res.Next(&rowStruct2) {
 		assert.NotZero(t, rowStruct2.Value1)
 		assert.NotZero(t, rowStruct2.Value2)
@@ -593,9 +575,6 @@ func TestGetResultsOneByOne(t *testing.T) {
 	allRowsMap := []map[string]interface{}{}
 
 	res = artist.Find()
-	if Adapter == "ql" {
-		res.Select("id() as id")
-	}
 
 	err = res.All(&allRowsMap)
 	assert.NoError(t, err)
@@ -614,9 +593,6 @@ func TestGetResultsOneByOne(t *testing.T) {
 	}{}
 
 	res = artist.Find()
-	if Adapter == "ql" {
-		res.Select("id() as id")
-	}
 
 	if err = res.All(&allRowsStruct); err != nil {
 		t.Fatal(err)
@@ -635,9 +611,6 @@ func TestGetResultsOneByOne(t *testing.T) {
 	}{}
 
 	res = artist.Find()
-	if Adapter == "ql" {
-		res.Select("id() as id", "name")
-	}
 
 	err = res.All(&allRowsStruct2)
 	assert.NoError(t, err)
@@ -661,9 +634,6 @@ func TestGetAllResults(t *testing.T) {
 	artists := []artistType{}
 
 	res := artist.Find()
-	if Adapter == "ql" {
-		res.Select("id() as id", "name")
-	}
 
 	err := res.All(&artists)
 	assert.NoError(t, err)
@@ -675,9 +645,6 @@ func TestGetAllResults(t *testing.T) {
 	// Fetching all artists into struct objects
 	artistObjs := []*artistType{}
 	res = artist.Find()
-	if Adapter == "ql" {
-		res.Select("id() as id", "name")
-	}
 	err = res.All(&artistObjs)
 	assert.NoError(t, err)
 	assert.NotZero(t, len(artistObjs))
@@ -716,11 +683,7 @@ func TestInlineStructs(t *testing.T) {
 		},
 	}
 
-	if Adapter == "postgresql" {
-		rec.Details.Created = time.Date(2016, time.January, 1, 2, 3, 4, 0, time.FixedZone("", 0))
-	} else {
-		rec.Details.Created = time.Date(2016, time.January, 1, 2, 3, 4, 0, time.UTC)
-	}
+	rec.Details.Created = time.Date(2016, time.January, 1, 2, 3, 4, 0, time.FixedZone("", 0))
 
 	id, err := review.Insert(rec)
 	assert.NoError(t, err)
@@ -730,9 +693,6 @@ func TestInlineStructs(t *testing.T) {
 
 	var recChk reviewType
 	res := review.Find()
-	if Adapter == "ql" {
-		res.Select("id() as id", "publication_id", "comments", "name", "created")
-	}
 	err = res.One(&recChk)
 	assert.NoError(t, err)
 
@@ -755,9 +715,6 @@ func TestUpdate(t *testing.T) {
 
 	// Getting the first artist.
 	cond := db.Cond{"id !=": db.NotEq(0)}
-	if Adapter == "ql" {
-		cond = db.Cond{"id() !=": 0}
-	}
 	res := artist.Find(cond).Limit(1)
 
 	err := res.One(&value)
@@ -780,48 +737,45 @@ func TestUpdate(t *testing.T) {
 	// Verifying.
 	assert.Equal(t, value.Name, rowMap["name"])
 
-	if Adapter != "ql" {
-
-		// Updating using raw
-		if err = res.Update(map[string]interface{}{"name": db.Raw("LOWER(name)")}); err != nil {
-			t.Fatal(err)
-		}
-
-		// Pulling it again.
-		err = res.One(&value)
-		assert.NoError(t, err)
-
-		// Verifying.
-		assert.Equal(t, value.Name, strings.ToLower(rowMap["name"].(string)))
-
-		// Updating using raw
-		if err = res.Update(struct {
-			Name db.RawValue `db:"name"`
-		}{db.Raw(`UPPER(name)`)}); err != nil {
-			t.Fatal(err)
-		}
-
-		// Pulling it again.
-		err = res.One(&value)
-		assert.NoError(t, err)
-
-		// Verifying.
-		assert.Equal(t, value.Name, strings.ToUpper(rowMap["name"].(string)))
-
-		// Updating using raw
-		if err = res.Update(struct {
-			Name db.Function `db:"name"`
-		}{db.Func("LOWER", db.Raw("name"))}); err != nil {
-			t.Fatal(err)
-		}
-
-		// Pulling it again.
-		err = res.One(&value)
-		assert.NoError(t, err)
-
-		// Verifying.
-		assert.Equal(t, value.Name, strings.ToLower(rowMap["name"].(string)))
+	// Updating using raw
+	if err = res.Update(map[string]interface{}{"name": db.Raw("LOWER(name)")}); err != nil {
+		t.Fatal(err)
 	}
+
+	// Pulling it again.
+	err = res.One(&value)
+	assert.NoError(t, err)
+
+	// Verifying.
+	assert.Equal(t, value.Name, strings.ToLower(rowMap["name"].(string)))
+
+	// Updating using raw
+	if err = res.Update(struct {
+		Name db.RawValue `db:"name"`
+	}{db.Raw(`UPPER(name)`)}); err != nil {
+		t.Fatal(err)
+	}
+
+	// Pulling it again.
+	err = res.One(&value)
+	assert.NoError(t, err)
+
+	// Verifying.
+	assert.Equal(t, value.Name, strings.ToUpper(rowMap["name"].(string)))
+
+	// Updating using raw
+	if err = res.Update(struct {
+		Name db.Function `db:"name"`
+	}{db.Func("LOWER", db.Raw("name"))}); err != nil {
+		t.Fatal(err)
+	}
+
+	// Pulling it again.
+	err = res.One(&value)
+	assert.NoError(t, err)
+
+	// Verifying.
+	assert.Equal(t, value.Name, strings.ToLower(rowMap["name"].(string)))
 
 	// Updating set with a struct
 	rowStruct := struct {
@@ -882,9 +836,6 @@ func TestFunction(t *testing.T) {
 
 	artist := sess.Collection("artist")
 	cond := db.Cond{"id NOT IN": []int{0, -1}}
-	if Adapter == "ql" {
-		cond = db.Cond{"id() NOT IN": []int{0, -1}}
-	}
 	res := artist.Find(cond)
 
 	err := res.One(&rowStruct)
@@ -896,9 +847,6 @@ func TestFunction(t *testing.T) {
 
 	// Testing conditions
 	cond = db.Cond{"id NOT IN": []interface{}{0, -1}}
-	if Adapter == "ql" {
-		cond = db.Cond{"id() NOT IN": []interface{}{0, -1}}
-	}
 	res = artist.Find(cond)
 
 	err = res.One(&rowStruct)
@@ -1049,10 +997,6 @@ func TestDelete(t *testing.T) {
 }
 
 func TestCompositeKeys(t *testing.T) {
-	if Adapter == "ql" {
-		t.Skip("Currently not supported.")
-	}
-
 	sess := mustOpen()
 
 	compositeKeys := sess.Collection("composite_keys")
@@ -1099,11 +1043,6 @@ func TestCompositeKeys(t *testing.T) {
 
 // Attempts to test database transactions.
 func TestTransactionsAndRollback(t *testing.T) {
-
-	if Adapter == "ql" {
-		t.Skip("Currently not supported.")
-	}
-
 	sess := mustOpen()
 
 	// Simple transaction that should not fail.
@@ -1226,10 +1165,6 @@ func TestTransactionsAndRollback(t *testing.T) {
 }
 
 func TestDataTypes(t *testing.T) {
-	if Adapter == "ql" {
-		t.Skip("Currently not supported.")
-	}
-
 	type testValuesStruct struct {
 		Uint   uint   `db:"_uint"`
 		Uint8  uint8  `db:"_uint8"`
@@ -1272,11 +1207,7 @@ func TestDataTypes(t *testing.T) {
 	ts := time.Date(2011, 7, 28, 1, 2, 3, 0, loc) // timestamp with time zone
 
 	var tnz time.Time
-	if Adapter == "postgresql" {
-		tnz = time.Date(2012, 7, 28, 1, 2, 3, 0, time.FixedZone("", 0)) // timestamp without time zone
-	} else {
-		tnz = time.Date(2012, 7, 28, 1, 2, 3, 0, time.UTC) // timestamp without time zone
-	}
+	tnz = time.Date(2012, 7, 28, 1, 2, 3, 0, time.FixedZone("", 0)) // timestamp without time zone
 
 	testValues := testValuesStruct{
 		1, 1, 1, 1, 1,
@@ -1299,9 +1230,6 @@ func TestDataTypes(t *testing.T) {
 
 	// Defining our set.
 	cond := db.Cond{"id": id}
-	if Adapter == "ql" {
-		cond = db.Cond{"id()": id}
-	}
 	res := dataTypes.Find(cond)
 
 	count, err := res.Count()
@@ -1371,11 +1299,9 @@ func TestBatchInsert(t *testing.T) {
 
 		q := sess.InsertInto("artist").Columns("name")
 
-		if Adapter == "postgresql" {
-			q = q.Amend(func(query string) string {
-				return query + ` ON CONFLICT DO NOTHING`
-			})
-		}
+		q = q.Amend(func(query string) string {
+			return query + ` ON CONFLICT DO NOTHING`
+		})
 
 		batch := q.Batch(batchSize)
 
@@ -1448,10 +1374,6 @@ func TestBatchInsertNoColumns(t *testing.T) {
 }
 
 func TestBatchInsertReturningKeys(t *testing.T) {
-	if Adapter != "postgresql" {
-		t.Skip("Currently not supported.")
-	}
-
 	sess := mustOpen()
 
 	err := sess.Collection("artist").Truncate()
@@ -1521,9 +1443,6 @@ func TestPaginator(t *testing.T) {
 	assert.NoError(t, batch.Err())
 
 	q := sess.SelectFrom("artist")
-	if Adapter == "ql" {
-		q = sess.SelectFrom(sess.Select("id() AS id", "name").From("artist"))
-	}
 
 	const pageSize = 13
 	cursorColumn := "id"
@@ -1630,15 +1549,9 @@ func TestPaginator(t *testing.T) {
 		}
 	}
 
-	if Adapter == "ql" {
-		t.Skip("Unsupported, see https://github.com/cznic/ql/issues/182")
-	}
-
 	{
 		result := sess.Collection("artist").Find()
-		if Adapter == "ql" {
-			result = result.Select("id() AS id", "name")
-		}
+
 		fifteenResults := 15
 		resultPaginator := result.Paginate(uint(fifteenResults))
 
@@ -1747,12 +1660,7 @@ func TestSQLBuilder(t *testing.T) {
 	var id int
 	var name string
 
-	if Adapter == "ql" {
-		err = iter.NextScan(&name)
-		id = 1
-	} else {
-		err = iter.NextScan(&id, &name)
-	}
+	err = iter.NextScan(&id, &name)
 
 	assert.NoError(t, err)
 	assert.NotZero(t, id)
@@ -1765,12 +1673,7 @@ func TestSQLBuilder(t *testing.T) {
 	// Using explicit iterator and ScanOne.
 	iter = sess.SelectFrom("artist").Iterator()
 	id, name = 0, ""
-	if Adapter == "ql" {
-		err = iter.ScanOne(&name)
-		id = 1
-	} else {
-		err = iter.ScanOne(&id, &name)
-	}
+	err = iter.ScanOne(&id, &name)
 
 	assert.NoError(t, err)
 	assert.NotZero(t, id)
@@ -1784,9 +1687,7 @@ func TestSQLBuilder(t *testing.T) {
 
 	var artist map[string]interface{}
 	for iter.Next(&artist) {
-		if Adapter != "ql" {
-			assert.NotZero(t, artist["id"])
-		}
+		assert.NotZero(t, artist["id"])
 		assert.NotEmpty(t, artist["name"])
 	}
 	// We should not have any error after finishing successfully exiting a Next() loop.
@@ -1824,10 +1725,6 @@ func TestSQLBuilder(t *testing.T) {
 }
 
 func TestExhaustConnectionPool(t *testing.T) {
-	if Adapter == "ql" {
-		t.Skip("Currently not supported.")
-	}
-
 	var tMu sync.Mutex
 
 	tFatal := func(err error) {
