@@ -8,8 +8,7 @@ The `github.com/acoshift/db` package for [Go][2] is a productive data access lay
 Go that provides a common interface to work with different data sources such as
 [PostgreSQL](https://github.com/acoshift/db/postgresql),
 [MySQL](https://github.com/acoshift/db/mysql), [SQLite](https://github.com/acoshift/db/sqlite),
-[MSSQL](https://github.com/acoshift/db/mssql),
-[QL](https://github.com/acoshift/db/ql).
+[MSSQL](https://github.com/acoshift/db/mssql).
 
 ```
 go get github.com/acoshift/db

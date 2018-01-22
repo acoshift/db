@@ -35,7 +35,6 @@ import (
 	"github.com/acoshift/db/mssql"
 	"github.com/acoshift/db/mysql"
 	"github.com/acoshift/db/postgresql"
-	"github.com/acoshift/db/ql"
 	"github.com/acoshift/db/sqlite"
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/mgo.v2/bson"
@@ -45,7 +44,6 @@ var wrappers = []string{
 	mssql.Adapter,
 	mysql.Adapter,
 	postgresql.Adapter,
-	ql.Adapter,
 	sqlite.Adapter,
 }
 
@@ -102,9 +100,6 @@ func init() {
 			Host:     host,
 			User:     `upperio_tests`,
 			Password: `upperio_Secre3t`,
-		},
-		`ql`: &ql.ConnectionURL{
-			Database: `ql-test.db`,
 		},
 	}
 
@@ -352,75 +347,6 @@ var setupFn = map[string]func(driver interface{}) error{
 		}
 		return errDriverErr
 	},
-	`ql`: func(driver interface{}) error {
-		if sqld, ok := driver.(*sql.DB); ok {
-			var err error
-			var tx *sql.Tx
-
-			if tx, err = sqld.Begin(); err != nil {
-				return err
-			}
-
-			_, err = tx.Exec(`DROP TABLE IF EXISTS birthdays`)
-			if err != nil {
-				return err
-			}
-
-			_, err = tx.Exec(`CREATE TABLE birthdays (
-				name string,
-				born time,
-				born_ut int
-			)`)
-			if err != nil {
-				return err
-			}
-
-			_, err = tx.Exec(`DROP TABLE IF EXISTS fibonacci`)
-			if err != nil {
-				return err
-			}
-
-			_, err = tx.Exec(`CREATE TABLE fibonacci (
-				input int,
-				output int
-			)`)
-			if err != nil {
-				return err
-			}
-
-			_, err = tx.Exec(`DROP TABLE IF EXISTS is_even`)
-			if err != nil {
-				return err
-			}
-
-			_, err = tx.Exec(`CREATE TABLE is_even (
-				input int,
-				is_even bool
-			)`)
-			if err != nil {
-				return err
-			}
-
-			_, err = tx.Exec(`DROP TABLE IF EXISTS CaSe_TesT`)
-			if err != nil {
-				return err
-			}
-
-			_, err = tx.Exec(`CREATE TABLE CaSe_TesT (
-				case_test string
-			)`)
-			if err != nil {
-				return err
-			}
-
-			if err = tx.Commit(); err != nil {
-				return err
-			}
-
-			return nil
-		}
-		return errDriverErr
-	},
 }
 
 type birthday struct {
@@ -601,25 +527,13 @@ func TestSimpleCRUD(t *testing.T) {
 				t.Fatalf(`Could not append item with wrapper %s: %q`, wrapper, err)
 			}
 
-			var res db.Result
-			switch wrapper {
-			case `ql`:
-				res = col.Find(db.Cond{"id()": id})
-			default:
-				res = col.Find(db.Cond{"id": id})
-			}
+			res := col.Find(db.Cond{"id": id})
 
 			var total uint64
 			total, err = res.Count()
 
 			if total != 1 {
 				t.Fatalf("%s: Expecting one row.", wrapper)
-			}
-
-			// No support for Marshaler and Unmarshaler is implemeted for QL and
-			// MongoDB.
-			if wrapper == `ql` || wrapper == `mongo` {
-				continue
 			}
 
 			var testItem birthday
@@ -863,64 +777,60 @@ func TestFibonacci(t *testing.T) {
 				t.Fatalf(`%s: Unexpected count %d.`, wrapper, total)
 			}
 
-			// Skipping mongodb as the results of this are not defined there.
-			if wrapper != `mongo` {
+			// Find() with empty db.Cond.
+			res1 := col.Find(db.Cond{})
+			total, err = res1.Count()
 
-				// Find() with empty db.Cond.
-				res1 := col.Find(db.Cond{})
-				total, err = res1.Count()
+			if total != 6 {
+				t.Fatalf(`%s: Unexpected count %d.`, wrapper, total)
+			}
 
-				if total != 6 {
-					t.Fatalf(`%s: Unexpected count %d.`, wrapper, total)
-				}
+			// Find() with empty expression
+			res1b := col.Find(db.Or(db.And(db.Cond{}, db.Cond{}), db.Or(db.Cond{})))
+			total, err = res1b.Count()
 
-				// Find() with empty expression
-				res1b := col.Find(db.Or(db.And(db.Cond{}, db.Cond{}), db.Or(db.Cond{})))
-				total, err = res1b.Count()
+			if total != 6 {
+				t.Fatalf(`%s: Unexpected count %d.`, wrapper, total)
+			}
 
-				if total != 6 {
-					t.Fatalf(`%s: Unexpected count %d.`, wrapper, total)
-				}
+			// Find() with explicit IS NULL
+			res2 := col.Find(db.Cond{"input IS": nil})
+			total, err = res2.Count()
 
-				// Find() with explicit IS NULL
-				res2 := col.Find(db.Cond{"input IS": nil})
-				total, err = res2.Count()
+			if total != 0 {
+				t.Fatalf(`%s: Unexpected count %d.`, wrapper, total)
+			}
 
-				if total != 0 {
-					t.Fatalf(`%s: Unexpected count %d.`, wrapper, total)
-				}
+			// Find() with implicit IS NULL
+			res2a := col.Find(db.Cond{"input": nil})
+			total, err = res2a.Count()
 
-				// Find() with implicit IS NULL
-				res2a := col.Find(db.Cond{"input": nil})
-				total, err = res2a.Count()
+			if total != 0 {
+				t.Fatalf(`%s: Unexpected count %d.`, wrapper, total)
+			}
 
-				if total != 0 {
-					t.Fatalf(`%s: Unexpected count %d.`, wrapper, total)
-				}
+			// Find() with explicit = NULL
+			res2b := col.Find(db.Cond{"input =": nil})
+			total, err = res2b.Count()
 
-				// Find() with explicit = NULL
-				res2b := col.Find(db.Cond{"input =": nil})
-				total, err = res2b.Count()
+			if total != 0 {
+				t.Fatalf(`%s: Unexpected count %d.`, wrapper, total)
+			}
 
-				if total != 0 {
-					t.Fatalf(`%s: Unexpected count %d.`, wrapper, total)
-				}
+			// Find() with implicit IN
+			res3 := col.Find(db.Cond{"input": []int{1, 2, 3, 4}})
+			total, err = res3.Count()
 
-				// Find() with implicit IN
-				res3 := col.Find(db.Cond{"input": []int{1, 2, 3, 4}})
-				total, err = res3.Count()
+			if total != 3 {
+				t.Fatalf(`%s: Unexpected count %d.`, wrapper, total)
+			}
 
-				if total != 3 {
-					t.Fatalf(`%s: Unexpected count %d.`, wrapper, total)
-				}
+			// Find() with implicit NOT IN
+			res3a := col.Find(db.Cond{"input NOT IN": []int{1, 2, 3, 4}})
+			total, err = res3a.Count()
 
-				// Find() with implicit NOT IN
-				res3a := col.Find(db.Cond{"input NOT IN": []int{1, 2, 3, 4}})
-				total, err = res3a.Count()
-
-				if total != 3 {
-					t.Fatalf(`%s: Unexpected count %d.`, wrapper, total)
-				}
+			if total != 3 {
+				t.Fatalf(`%s: Unexpected count %d.`, wrapper, total)
 			}
 
 			var items []fibonacci
@@ -1103,11 +1013,7 @@ func TestExplicitAndDefaultMapping(t *testing.T) {
 			col := sess.Collection("CaSe_TesT")
 
 			if err = col.Truncate(); err != nil {
-				if wrapper == `mongo` {
-					// Nothing, this is expected.
-				} else {
-					t.Fatal(err)
-				}
+				t.Fatal(err)
 			}
 
 			// Testing explicit mapping.
@@ -1121,22 +1027,12 @@ func TestExplicitAndDefaultMapping(t *testing.T) {
 
 			res = col.Find(db.Cond{"case_test": "Hello!"})
 
-			if wrapper == `ql` {
-				res = res.Select(`id() as id`, `case_test`)
-			}
-
 			if err = res.One(&testE); err != nil {
 				t.Fatal(err)
 			}
 
-			if wrapper == `mongo` {
-				if testE.MongoID.Valid() == false {
-					t.Fatalf("Expecting an ID.")
-				}
-			} else {
-				if testE.ID == 0 {
-					t.Fatalf("Expecting an ID.")
-				}
+			if testE.ID == 0 {
+				t.Fatalf("Expecting an ID.")
 			}
 
 			// Testing default mapping.
@@ -1148,28 +1044,14 @@ func TestExplicitAndDefaultMapping(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			if wrapper == `mongo` {
-				res = col.Find(db.Cond{"case_test": "World!"})
-			} else {
-				res = col.Find(db.Cond{"case_test": "World!"})
-			}
-
-			if wrapper == `ql` {
-				res = res.Select(`id() as id`, `case_test`)
-			}
+			res = col.Find(db.Cond{"case_test": "World!"})
 
 			if err = res.One(&testN); err != nil {
 				t.Fatal(err)
 			}
 
-			if wrapper == `mongo` {
-				if testN.MongoID.Valid() == false {
-					t.Fatalf("Expecting an ID.")
-				}
-			} else {
-				if testN.ID == 0 {
-					t.Fatalf("Expecting an ID.")
-				}
+			if testN.ID == 0 {
+				t.Fatalf("Expecting an ID.")
 			}
 		}
 	}
@@ -1436,20 +1318,11 @@ func TestComparisonOperators(t *testing.T) {
 		// Test: like and not like
 		{
 			var items []birthday
-			var q db.Result
 
-			switch wrapper {
-			case "ql":
-				q = birthdays.Find(db.And(
-					db.Cond{"name": db.Like(".*ari.*")},
-					db.Cond{"name": db.NotLike(".*Smith")},
-				))
-			default:
-				q = birthdays.Find(db.And(
-					db.Cond{"name": db.Like("%ari%")},
-					db.Cond{"name": db.NotLike("%Smith")},
-				))
-			}
+			q := birthdays.Find(db.And(
+				db.Cond{"name": db.Like("%ari%")},
+				db.Cond{"name": db.NotLike("%Smith")},
+			))
 
 			err := q.All(&items)
 			assert.NoError(t, err)
