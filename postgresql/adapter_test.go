@@ -55,7 +55,7 @@ var settings = fmt.Sprintf("postgres://%s:%s@%s/%s?sslmode=disable&timezone=%s",
 
 func tearUp() error {
 	sess := mustOpen()
-	defer sess.Close()
+	defer sess.Driver().(*sql.DB).Close()
 
 	batch := []string{
 		`DROP TABLE IF EXISTS artist`,
@@ -677,7 +677,7 @@ func testPostgreSQLTypes(t *testing.T, sess sqlbuilder.Database) {
 
 func TestOptionTypes(t *testing.T) {
 	sess := mustOpen()
-	defer sess.Close()
+	defer sess.Driver().(*sql.DB).Close()
 
 	optionTypes := sess.Collection("option_types")
 	err := optionTypes.Truncate()
@@ -843,7 +843,7 @@ func (s Settings) Value() (driver.Value, error) {
 
 func TestOptionTypeJsonbStruct(t *testing.T) {
 	sess := mustOpen()
-	defer sess.Close()
+	defer sess.Driver().(*sql.DB).Close()
 
 	optionTypes := sess.Collection("option_types")
 
@@ -882,7 +882,7 @@ func TestOptionTypeJsonbStruct(t *testing.T) {
 
 func TestSchemaCollection(t *testing.T) {
 	sess := mustOpen()
-	defer sess.Close()
+	defer sess.Driver().(*sql.DB).Close()
 
 	col := sess.Collection("test_schema.test")
 	_, err := col.Insert(map[string]int{"id": 9})
@@ -897,7 +897,7 @@ func TestSchemaCollection(t *testing.T) {
 
 func TestMaxOpenConns_Issue340(t *testing.T) {
 	sess := mustOpen()
-	defer sess.Close()
+	defer sess.Driver().(*sql.DB).Close()
 
 	sess.SetMaxOpenConns(5)
 
@@ -921,7 +921,7 @@ func TestMaxOpenConns_Issue340(t *testing.T) {
 
 func TestUUIDInsert_Issue370(t *testing.T) {
 	sess := mustOpen()
-	defer sess.Close()
+	defer sess.Driver().(*sql.DB).Close()
 
 	{
 		type itemT struct {
@@ -1015,7 +1015,7 @@ func TestUUIDInsert_Issue370(t *testing.T) {
 
 func TestTxOptions_Issue409(t *testing.T) {
 	sess := mustOpen()
-	defer sess.Close()
+	defer sess.Driver().(*sql.DB).Close()
 
 	sess.SetTxOptions(sql.TxOptions{
 		ReadOnly: true,
@@ -1037,7 +1037,7 @@ func TestTxOptions_Issue409(t *testing.T) {
 
 func TestEscapeQuestionMark(t *testing.T) {
 	sess := mustOpen()
-	defer sess.Close()
+	defer sess.Driver().(*sql.DB).Close()
 
 	var val bool
 
@@ -1071,7 +1071,7 @@ func TestEscapeQuestionMark(t *testing.T) {
 
 func TestTextMode_Issue391(t *testing.T) {
 	sess := mustOpen()
-	defer sess.Close()
+	defer sess.Driver().(*sql.DB).Close()
 
 	testPostgreSQLTypes(t, sess)
 }
@@ -1084,7 +1084,7 @@ func TestBinaryMode_Issue391(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer sess.Close()
+	defer sess.Driver().(*sql.DB).Close()
 
 	testPostgreSQLTypes(t, sess)
 }

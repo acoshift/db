@@ -87,12 +87,10 @@ func (b *baseTx) Commit() (err error) {
 }
 
 func (w *databaseTx) Commit() error {
-	defer w.Database.Close() // Automatic close on commit.
 	return w.BaseTx.Commit()
 }
 
 func (w *databaseTx) Rollback() error {
-	defer w.Database.Close() // Automatic close on rollback.
 	return w.BaseTx.Rollback()
 }
 
@@ -103,7 +101,7 @@ func RunTx(d sqlbuilder.Database, ctx context.Context, fn func(tx sqlbuilder.Tx)
 		return err
 	}
 
-	defer tx.Close()
+	defer tx.Rollback()
 	if err := fn(tx); err != nil {
 		tx.Rollback()
 		return err

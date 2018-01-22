@@ -36,10 +36,6 @@ type Database interface {
 	// Open attempts to establish a connection with a DBMS.
 	Open(string) error
 
-	// Close closes the currently active connection to the database and clears
-	// caches.
-	Close() error
-
 	// Collection returns a collection reference given a table name.
 	Collection(string) Collection
 

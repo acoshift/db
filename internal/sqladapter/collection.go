@@ -147,7 +147,7 @@ func (c *collection) InsertReturning(item interface{}) error {
 		if err != nil {
 			return err
 		}
-		defer tx.(Database).Close()
+		defer tx.Rollback()
 	}
 
 	// Allocate a clone of item.
@@ -242,7 +242,7 @@ func (c *collection) UpdateReturning(item interface{}) error {
 		if err != nil {
 			return err
 		}
-		defer tx.(Database).Close()
+		defer tx.Rollback()
 	}
 
 	// Allocate a clone of item.

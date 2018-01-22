@@ -67,7 +67,7 @@ func TestOpenMustSucceed(t *testing.T) {
 	assert.NotNil(t, sess)
 
 	assert.NoError(t, cleanUpCheck(sess))
-	assert.NoError(t, sess.Close())
+	assert.NoError(t, sess.Driver().(*sql.DB).Close())
 }
 
 func TestPreparedStatementsCache(t *testing.T) {
@@ -144,7 +144,7 @@ func TestPreparedStatementsCache(t *testing.T) {
 	sess.SetMaxOpenConns(0)
 
 	assert.NoError(t, cleanUpCheck(sess))
-	assert.NoError(t, sess.Close())
+	assert.NoError(t, sess.Driver().(*sql.DB).Close())
 }
 
 func TestTruncateAllCollections(t *testing.T) {
@@ -165,7 +165,7 @@ func TestTruncateAllCollections(t *testing.T) {
 	}
 
 	assert.NoError(t, cleanUpCheck(sess))
-	assert.NoError(t, sess.Close())
+	assert.NoError(t, sess.Driver().(*sql.DB).Close())
 }
 
 func TestCustomQueryLogger(t *testing.T) {
@@ -185,7 +185,7 @@ func TestCustomQueryLogger(t *testing.T) {
 	assert.NotEqual(t, nil, err)
 
 	assert.NoError(t, cleanUpCheck(sess))
-	assert.NoError(t, sess.Close())
+	assert.NoError(t, sess.Driver().(*sql.DB).Close())
 }
 
 func TestExpectCursorError(t *testing.T) {
@@ -203,7 +203,7 @@ func TestExpectCursorError(t *testing.T) {
 	assert.Error(t, err)
 
 	assert.NoError(t, cleanUpCheck(sess))
-	assert.NoError(t, sess.Close())
+	assert.NoError(t, sess.Driver().(*sql.DB).Close())
 }
 
 func TestInsertDefault(t *testing.T) {
@@ -284,7 +284,7 @@ func TestInsertReturning(t *testing.T) {
 	assert.Equal(t, uint64(2), count, "Expecting 2 elements")
 
 	assert.NoError(t, cleanUpCheck(sess))
-	assert.NoError(t, sess.Close())
+	assert.NoError(t, sess.Driver().(*sql.DB).Close())
 }
 
 func TestInsertReturningWithinTransaction(t *testing.T) {
@@ -295,7 +295,7 @@ func TestInsertReturningWithinTransaction(t *testing.T) {
 
 	tx, err := sess.NewTx(nil)
 	assert.NoError(t, err)
-	defer tx.Close()
+	defer tx.Rollback()
 
 	artist := tx.Collection("artist")
 
@@ -358,7 +358,7 @@ func TestInsertReturningWithinTransaction(t *testing.T) {
 	assert.Equal(t, uint64(0), count, "Expecting 0 elements, everything was rolled back!")
 
 	assert.NoError(t, cleanUpCheck(sess))
-	assert.NoError(t, sess.Close())
+	assert.NoError(t, sess.Driver().(*sql.DB).Close())
 }
 
 func TestInsertIntoArtistsTable(t *testing.T) {
@@ -446,7 +446,7 @@ func TestInsertIntoArtistsTable(t *testing.T) {
 	assert.Equal(t, uint64(0), count)
 
 	assert.NoError(t, cleanUpCheck(sess))
-	assert.NoError(t, sess.Close())
+	assert.NoError(t, sess.Driver().(*sql.DB).Close())
 }
 
 func TestQueryNonExistentCollection(t *testing.T) {
@@ -457,7 +457,7 @@ func TestQueryNonExistentCollection(t *testing.T) {
 	assert.Zero(t, count)
 
 	assert.NoError(t, cleanUpCheck(sess))
-	assert.NoError(t, sess.Close())
+	assert.NoError(t, sess.Driver().(*sql.DB).Close())
 }
 
 func TestGetOneResult(t *testing.T) {
@@ -481,7 +481,7 @@ func TestGetOneResult(t *testing.T) {
 	assert.NotZero(t, someArtist.ID)
 
 	assert.NoError(t, cleanUpCheck(sess))
-	assert.NoError(t, sess.Close())
+	assert.NoError(t, sess.Driver().(*sql.DB).Close())
 }
 
 func TestGetWithOffset(t *testing.T) {
@@ -497,7 +497,7 @@ func TestGetWithOffset(t *testing.T) {
 	assert.Equal(t, 3, len(artists))
 
 	assert.NoError(t, cleanUpCheck(sess))
-	assert.NoError(t, sess.Close())
+	assert.NoError(t, sess.Driver().(*sql.DB).Close())
 }
 
 func TestGetResultsOneByOne(t *testing.T) {
@@ -591,7 +591,7 @@ func TestGetResultsOneByOne(t *testing.T) {
 	}
 
 	assert.NoError(t, cleanUpCheck(sess))
-	assert.NoError(t, sess.Close())
+	assert.NoError(t, sess.Driver().(*sql.DB).Close())
 }
 
 func TestGetAllResults(t *testing.T) {
@@ -621,7 +621,7 @@ func TestGetAllResults(t *testing.T) {
 	assert.NotZero(t, artistObjs[0].ID)
 
 	assert.NoError(t, cleanUpCheck(sess))
-	assert.NoError(t, sess.Close())
+	assert.NoError(t, sess.Driver().(*sql.DB).Close())
 }
 
 func TestInlineStructs(t *testing.T) {
@@ -668,7 +668,7 @@ func TestInlineStructs(t *testing.T) {
 	assert.Equal(t, rec, recChk)
 
 	assert.NoError(t, cleanUpCheck(sess))
-	assert.NoError(t, sess.Close())
+	assert.NoError(t, sess.Driver().(*sql.DB).Close())
 }
 
 func TestUpdate(t *testing.T) {
@@ -792,7 +792,7 @@ func TestUpdate(t *testing.T) {
 	assert.Equal(t, value.Name, rowStruct3.Value1)
 
 	assert.NoError(t, cleanUpCheck(sess))
-	assert.NoError(t, sess.Close())
+	assert.NoError(t, sess.Driver().(*sql.DB).Close())
 }
 
 func TestFunction(t *testing.T) {
@@ -845,7 +845,7 @@ func TestFunction(t *testing.T) {
 	assert.Equal(t, uint64(4), total)
 
 	assert.NoError(t, cleanUpCheck(sess))
-	assert.NoError(t, sess.Close())
+	assert.NoError(t, sess.Driver().(*sql.DB).Close())
 }
 
 func TestNullableFields(t *testing.T) {
@@ -903,7 +903,7 @@ func TestNullableFields(t *testing.T) {
 	assert.True(t, test.NullStringTest.Valid)
 
 	assert.NoError(t, cleanUpCheck(sess))
-	assert.NoError(t, sess.Close())
+	assert.NoError(t, sess.Driver().(*sql.DB).Close())
 }
 
 func TestGroup(t *testing.T) {
@@ -941,7 +941,7 @@ func TestGroup(t *testing.T) {
 	assert.Equal(t, 5, len(results))
 
 	assert.NoError(t, cleanUpCheck(sess))
-	assert.NoError(t, sess.Close())
+	assert.NoError(t, sess.Driver().(*sql.DB).Close())
 }
 
 func TestDelete(t *testing.T) {
@@ -962,7 +962,7 @@ func TestDelete(t *testing.T) {
 	assert.Equal(t, uint64(0), total)
 
 	assert.NoError(t, cleanUpCheck(sess))
-	assert.NoError(t, sess.Close())
+	assert.NoError(t, sess.Driver().(*sql.DB).Close())
 }
 
 func TestCompositeKeys(t *testing.T) {
@@ -1007,7 +1007,7 @@ func TestCompositeKeys(t *testing.T) {
 	}
 
 	assert.NoError(t, cleanUpCheck(sess))
-	assert.NoError(t, sess.Close())
+	assert.NoError(t, sess.Driver().(*sql.DB).Close())
 }
 
 // Attempts to test database transactions.
@@ -1031,12 +1031,6 @@ func TestTransactionsAndRollback(t *testing.T) {
 	// An attempt to use the same transaction must fail.
 	err = tx.Commit()
 	assert.Error(t, err)
-
-	err = tx.Close()
-	assert.NoError(t, err)
-
-	err = tx.Close()
-	assert.NoError(t, err)
 
 	// Use another transaction.
 	tx, err = sess.NewTx(nil)
@@ -1068,9 +1062,6 @@ func TestTransactionsAndRollback(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, uint64(1), count)
 
-	err = tx.Close()
-	assert.NoError(t, err)
-
 	// Attempt to add some rows.
 	tx, err = sess.NewTx(nil)
 	assert.NoError(t, err)
@@ -1098,9 +1089,6 @@ func TestTransactionsAndRollback(t *testing.T) {
 	count, err = artist.Find().Count()
 	assert.NoError(t, err)
 	assert.Equal(t, uint64(1), count)
-
-	err = tx.Close()
-	assert.NoError(t, err)
 
 	// Attempt to add some rows.
 	tx, err = sess.NewTx(nil)
@@ -1130,7 +1118,7 @@ func TestTransactionsAndRollback(t *testing.T) {
 	assert.Equal(t, uint64(3), count)
 
 	assert.NoError(t, cleanUpCheck(sess))
-	assert.NoError(t, sess.Close())
+	assert.NoError(t, sess.Driver().(*sql.DB).Close())
 }
 
 func TestDataTypes(t *testing.T) {
@@ -1220,7 +1208,7 @@ func TestDataTypes(t *testing.T) {
 	assert.Equal(t, testValues, item)
 
 	assert.NoError(t, cleanUpCheck(sess))
-	assert.NoError(t, sess.Close())
+	assert.NoError(t, sess.Driver().(*sql.DB).Close())
 }
 
 func TestUpdateWithNullColumn(t *testing.T) {
@@ -1256,7 +1244,7 @@ func TestUpdateWithNullColumn(t *testing.T) {
 	assert.Equal(t, (*string)(nil), item2.Name)
 
 	assert.NoError(t, cleanUpCheck(sess))
-	assert.NoError(t, sess.Close())
+	assert.NoError(t, sess.Driver().(*sql.DB).Close())
 }
 
 func TestBatchInsert(t *testing.T) {
@@ -1299,7 +1287,7 @@ func TestBatchInsert(t *testing.T) {
 	}
 
 	assert.NoError(t, cleanUpCheck(sess))
-	assert.NoError(t, sess.Close())
+	assert.NoError(t, sess.Driver().(*sql.DB).Close())
 }
 
 func TestBatchInsertNoColumns(t *testing.T) {
@@ -1339,7 +1327,7 @@ func TestBatchInsertNoColumns(t *testing.T) {
 	}
 
 	assert.NoError(t, cleanUpCheck(sess))
-	assert.NoError(t, sess.Close())
+	assert.NoError(t, sess.Driver().(*sql.DB).Close())
 }
 
 func TestBatchInsertReturningKeys(t *testing.T) {
@@ -1386,7 +1374,7 @@ func TestBatchInsertReturningKeys(t *testing.T) {
 	assert.Equal(t, uint64(totalItems), c)
 
 	assert.NoError(t, cleanUpCheck(sess))
-	assert.NoError(t, sess.Close())
+	assert.NoError(t, sess.Driver().(*sql.DB).Close())
 }
 
 func TestPaginator(t *testing.T) {
@@ -1593,7 +1581,7 @@ func TestPaginator(t *testing.T) {
 	}
 
 	assert.NoError(t, cleanUpCheck(sess))
-	assert.NoError(t, sess.Close())
+	assert.NoError(t, sess.Driver().(*sql.DB).Close())
 }
 
 func TestSQLBuilder(t *testing.T) {
@@ -1678,7 +1666,7 @@ func TestSQLBuilder(t *testing.T) {
 	tx, err := sess.NewTx(nil)
 	assert.NoError(t, err)
 	assert.NotZero(t, tx)
-	defer tx.Close()
+	defer tx.Rollback()
 
 	q = tx.SelectFrom("artist")
 	assert.NotZero(t, iter)
@@ -1690,7 +1678,7 @@ func TestSQLBuilder(t *testing.T) {
 	assert.NoError(t, tx.Commit())
 
 	assert.NoError(t, cleanUpCheck(sess))
-	assert.NoError(t, sess.Close())
+	assert.NoError(t, sess.Driver().(*sql.DB).Close())
 }
 
 func TestExhaustConnectionPool(t *testing.T) {
@@ -1744,7 +1732,7 @@ func TestExhaustConnectionPool(t *testing.T) {
 			// transaction lasts 3 seconds.
 			time.Sleep(time.Second * 3)
 
-			switch i % 7 {
+			switch i % 2 {
 			case 0:
 				var account map[string]interface{}
 				if err := tx.Collection("artist").Find().One(&account); err != nil {
@@ -1762,47 +1750,6 @@ func TestExhaustConnectionPool(t *testing.T) {
 					tFatal(err)
 				}
 				tLogf("Tx %d: Rolled back", i)
-			case 2:
-				if err := tx.Close(); err != nil {
-					tFatal(err)
-				}
-				tLogf("Tx %d: Closed", i)
-			case 3:
-				var account map[string]interface{}
-				if err := tx.Collection("artist").Find().One(&account); err != nil {
-					tFatal(err)
-				}
-				if err := tx.Commit(); err != nil {
-					tFatal(err)
-				}
-				if err := tx.Close(); err != nil {
-					tFatal(err)
-				}
-				tLogf("Tx %d: Committed and closed", i)
-			case 4:
-				if err := tx.Rollback(); err != nil {
-					tFatal(err)
-				}
-				if err := tx.Close(); err != nil {
-					tFatal(err)
-				}
-				tLogf("Tx %d: Rolled back and closed", i)
-			case 5:
-				if err := tx.Close(); err != nil {
-					tFatal(err)
-				}
-				if err := tx.Commit(); err == nil {
-					tFatal(fmt.Errorf("Error expected"))
-				}
-				tLogf("Tx %d: Closed and committed", i)
-			case 6:
-				if err := tx.Close(); err != nil {
-					tFatal(err)
-				}
-				if err := tx.Rollback(); err == nil {
-					tFatal(fmt.Errorf("Error expected"))
-				}
-				tLogf("Tx %d: Closed and rolled back", i)
 			}
 		}(&wg, i)
 	}
@@ -1810,5 +1757,5 @@ func TestExhaustConnectionPool(t *testing.T) {
 	wg.Wait()
 
 	assert.NoError(t, cleanUpCheck(sess))
-	assert.NoError(t, sess.Close())
+	assert.NoError(t, sess.Driver().(*sql.DB).Close())
 }

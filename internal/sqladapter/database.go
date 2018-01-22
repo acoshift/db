@@ -85,9 +85,6 @@ type BaseDatabase interface {
 	// Name returns the name of the database.
 	Name() string
 
-	// Close closes the database session
-	Close() error
-
 	// ClearCache clears all caches the session is using
 	ClearCache()
 
@@ -311,36 +308,6 @@ func (d *database) NewClone(p PartialDatabase, checkConn bool) (BaseDatabase, er
 	copySettings(d, nd)
 
 	return nd, nil
-}
-
-// Close terminates the current database session
-func (d *database) Close() error {
-	defer func() {
-		d.sessMu.Lock()
-		d.sess = nil
-		d.baseTx = nil
-		d.sessMu.Unlock()
-	}()
-	if d.sess != nil {
-		if cleaner, ok := d.PartialDatabase.(hasCleanUp); ok {
-			cleaner.CleanUp()
-		}
-
-		d.cachedCollections.Clear()
-		d.cachedStatements.Clear() // Closes prepared statements as well.
-
-		tx := d.Transaction()
-		if tx == nil {
-			// Not within a transaction.
-			return d.sess.Close()
-		}
-
-		if !tx.Committed() {
-			tx.Rollback()
-			return nil
-		}
-	}
-	return nil
 }
 
 // Collection returns a db.Collection given a name. Results are cached.

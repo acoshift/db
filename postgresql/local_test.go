@@ -15,7 +15,7 @@ func TestStringAndInt64Array(t *testing.T) {
 
 	defer func() {
 		driver.Exec(`DROP TABLE IF EXISTS array_types`)
-		sess.Close()
+		sess.Driver().(*sql.DB).Close()
 	}()
 
 	if _, err := driver.Exec(`
@@ -94,7 +94,7 @@ func TestIssue210(t *testing.T) {
 	}
 
 	sess := mustOpen()
-	defer sess.Close()
+	defer sess.Driver().(*sql.DB).Close()
 
 	tx, err := sess.NewTx(nil)
 	assert.NoError(t, err)
@@ -116,7 +116,7 @@ func TestIssue210(t *testing.T) {
 
 func TestPreparedStatements(t *testing.T) {
 	sess := mustOpen()
-	defer sess.Close()
+	defer sess.Driver().(*sql.DB).Close()
 
 	var val int
 
@@ -195,7 +195,7 @@ func TestPreparedStatements(t *testing.T) {
 
 func TestNonTrivialSubqueries(t *testing.T) {
 	sess := mustOpen()
-	defer sess.Close()
+	defer sess.Driver().(*sql.DB).Close()
 
 	{
 		q, err := sess.Query(`WITH test AS (?) ?`,
