@@ -62,11 +62,6 @@ type Tx interface {
 	// If no context has been set, a default context.Background() is returned.
 	Context() context.Context
 
-	// WithContext returns a copy of the transaction that uses the given context
-	// as default. Copies are safe to use concurrently but they're backed by the
-	// same *sql.Tx, so any copy may commit or rollback the parent transaction.
-	WithContext(context.Context) Tx
-
 	// SetTxOptions sets the default TxOptions that is going to be used for new
 	// transactions created in the session.
 	SetTxOptions(sql.TxOptions)
@@ -100,12 +95,6 @@ type Database interface {
 	// and for new transactions.  If no context has been set, a default
 	// context.Background() is returned.
 	Context() context.Context
-
-	// WithContext returns a copy of the session that uses the given context as
-	// default. Copies are safe to use concurrently but they're backed by the
-	// same *sql.DB. You may close a copy at any point but that won't close the
-	// parent session.
-	WithContext(context.Context) Database
 
 	// SetTxOptions sets the default TxOptions that is going to be used for new
 	// transactions created in the session.

@@ -336,9 +336,3 @@ func (d *database) PrimaryKeys(tableName string) ([]string, error) {
 
 	return pk, nil
 }
-
-// WithContext creates a copy of the session on the given context.
-func (d *database) WithContext(ctx context.Context) sqlbuilder.Database {
-	newDB, _ := d.clone(ctx, false)
-	return newDB
-}

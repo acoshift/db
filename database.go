@@ -36,13 +36,6 @@ type Database interface {
 	// Open attempts to establish a connection with a DBMS.
 	Open(ConnectionURL) error
 
-	// Clone duplicates the current database session. Returns an error if the
-	// clone did not succeed.
-	// Clone() (Database, error)
-
-	// Ping returns an error if the database manager could not be reached.
-	Ping() error
-
 	// Close closes the currently active connection to the database and clears
 	// caches.
 	Close() error

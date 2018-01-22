@@ -22,8 +22,6 @@
 package postgresql
 
 import (
-	"context"
-
 	"github.com/acoshift/db/internal/sqladapter"
 	"github.com/acoshift/db/lib/sqlbuilder"
 )
@@ -35,10 +33,3 @@ type tx struct {
 var (
 	_ = sqlbuilder.Tx(&tx{})
 )
-
-func (t *tx) WithContext(ctx context.Context) sqlbuilder.Tx {
-	var newTx tx
-	newTx = *t
-	newTx.DatabaseTx.SetContext(ctx)
-	return &newTx
-}

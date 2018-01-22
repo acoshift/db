@@ -91,9 +91,6 @@ type BaseDatabase interface {
 	// Close closes the database session
 	Close() error
 
-	// Ping checks if the database server is reachable.
-	Ping() error
-
 	// ClearCache clears all caches the session is using
 	ClearCache()
 
@@ -226,9 +223,9 @@ func (d *database) BindTx(ctx context.Context, t *sql.Tx) error {
 	defer d.sessMu.Unlock()
 
 	d.baseTx = newBaseTx(t)
-	if err := d.Ping(); err != nil {
-		return err
-	}
+	// if err := d.Ping(); err != nil {
+	// 	return err
+	// }
 
 	d.SetContext(ctx)
 	d.txID = newBaseTxID()
@@ -259,9 +256,9 @@ func (d *database) BindSession(sess *sql.DB) error {
 	d.sess = sess
 	d.sessMu.Unlock()
 
-	if err := d.Ping(); err != nil {
-		return err
-	}
+	// if err := d.Ping(); err != nil {
+	// 	return err
+	// }
 
 	d.sessID = newSessionID()
 	name, err := d.PartialDatabase.LookupName()
@@ -271,15 +268,6 @@ func (d *database) BindSession(sess *sql.DB) error {
 
 	d.name = name
 
-	return nil
-}
-
-// Ping checks whether a connection to the database is still alive by pinging
-// it
-func (d *database) Ping() error {
-	if d.sess != nil {
-		return d.sess.Ping()
-	}
 	return nil
 }
 
@@ -331,9 +319,9 @@ func (d *database) NewClone(p PartialDatabase, checkConn bool) (BaseDatabase, er
 	nd.sess = d.sess
 
 	if checkConn {
-		if err := nd.Ping(); err != nil {
-			return nil, err
-		}
+		// if err := nd.Ping(); err != nil {
+		// 	return nil, err
+		// }
 	}
 
 	nd.sessID = newSessionID()
