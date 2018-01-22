@@ -24,7 +24,7 @@
 //
 // The main purpose of upper-db is to abstract common database operations and
 // encourage users perform advanced operations directly using the underlying
-// driver. upper-db supports the MySQL, PostgreSQL, SQLite and QL databases and
+// driver. upper-db supports the MySQL, PostgreSQL and QL databases and
 // provides partial support (CRUD, no transactions) for MongoDB.
 //
 //  go get github.com/acoshift/db

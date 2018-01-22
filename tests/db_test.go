@@ -35,7 +35,6 @@ import (
 	"github.com/acoshift/db/mssql"
 	"github.com/acoshift/db/mysql"
 	"github.com/acoshift/db/postgresql"
-	"github.com/acoshift/db/sqlite"
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/mgo.v2/bson"
 )
@@ -44,7 +43,6 @@ var wrappers = []string{
 	mssql.Adapter,
 	mysql.Adapter,
 	postgresql.Adapter,
-	sqlite.Adapter,
 }
 
 const (
@@ -74,9 +72,6 @@ func init() {
 	log.Printf("Running tests against host %s.\n", host)
 
 	settings = map[string]db.ConnectionURL{
-		`sqlite`: &sqlite.ConnectionURL{
-			Database: `sqlite3-test.db`,
-		},
 		`mysql`: &mysql.ConnectionURL{
 			Database: `upperio_tests`,
 			Host:     host,
@@ -288,65 +283,6 @@ var setupFn = map[string]func(driver interface{}) error{
 		}
 		return fmt.Errorf("Expecting *sql.DB got %T (%#v).", driver, driver)
 	},
-	`sqlite`: func(driver interface{}) error {
-		if sqld, ok := driver.(*sql.DB); ok {
-			var err error
-
-			_, err = sqld.Exec(`DROP TABLE IF EXISTS "birthdays"`)
-			if err != nil {
-				return err
-			}
-			_, err = sqld.Exec(`CREATE TABLE "birthdays" (
-				"id" INTEGER PRIMARY KEY,
-				"name" VARCHAR(50) DEFAULT NULL,
-				"born" DATETIME DEFAULT NULL,
-				"born_ut" INTEGER
-			)`)
-			if err != nil {
-				return err
-			}
-
-			_, err = sqld.Exec(`DROP TABLE IF EXISTS "fibonacci"`)
-			if err != nil {
-				return err
-			}
-			_, err = sqld.Exec(`CREATE TABLE "fibonacci" (
-				"id" INTEGER PRIMARY KEY,
-				"input" INTEGER,
-				"output" INTEGER
-			)`)
-			if err != nil {
-				return err
-			}
-
-			_, err = sqld.Exec(`DROP TABLE IF EXISTS "is_even"`)
-			if err != nil {
-				return err
-			}
-			_, err = sqld.Exec(`CREATE TABLE "is_even" (
-				"input" INTEGER,
-				"is_even" INTEGER
-			)`)
-			if err != nil {
-				return err
-			}
-
-			_, err = sqld.Exec(`DROP TABLE IF EXISTS "CaSe_TesT"`)
-			if err != nil {
-				return err
-			}
-			_, err = sqld.Exec(`CREATE TABLE "CaSe_TesT" (
-				"id" INTEGER PRIMARY KEY,
-				"case_test" VARCHAR
-			)`)
-			if err != nil {
-				return err
-			}
-
-			return nil
-		}
-		return errDriverErr
-	},
 }
 
 type birthday struct {
@@ -542,11 +478,6 @@ func TestSimpleCRUD(t *testing.T) {
 				t.Fatalf("%s One(): %s", wrapper, err)
 			}
 
-			if wrapper == `sqlite` {
-				// SQLite does not save time zone info, so you have to do this by hand.
-				testItem.Born = testItem.Born.In(time.UTC)
-			}
-
 			if reflect.DeepEqual(testItem, controlItem) == false {
 				t.Errorf("%s: controlItem (inserted): %v (ts: %v)\n", wrapper, controlItem, controlItem.BornUT.value.Unix())
 				t.Fatalf("%s: Structs are different", wrapper)
@@ -563,10 +494,6 @@ func TestSimpleCRUD(t *testing.T) {
 			}
 
 			for _, testItem = range testItems {
-				if wrapper == `sqlite` {
-					// SQLite does not save time zone info, so you have to do this by hand.
-					testItem.Born = testItem.Born.In(time.UTC)
-				}
 				if reflect.DeepEqual(testItem, controlItem) == false {
 					t.Errorf("%s: testItem: %v\n", wrapper, testItem)
 					t.Errorf("%s: controlItem: %v\n", wrapper, controlItem)
@@ -584,11 +511,6 @@ func TestSimpleCRUD(t *testing.T) {
 			err = res.One(&testItem)
 			if err != nil {
 				t.Fatalf("%s One(): %s", wrapper, err)
-			}
-
-			if wrapper == `sqlite` {
-				// SQLite does not save time zone info, so you have to do this by hand.
-				testItem.Born = testItem.Born.In(time.UTC)
 			}
 
 			if reflect.DeepEqual(testItem, controlItem) == false {
@@ -668,8 +590,6 @@ func TestFibonacci(t *testing.T) {
 			// Testing sort by function.
 			switch wrapper {
 			case `postgresql`:
-				res = res.OrderBy(db.Raw(`RANDOM()`))
-			case `sqlite`:
 				res = res.OrderBy(db.Raw(`RANDOM()`))
 			case `mysql`:
 				res = res.OrderBy(db.Raw(`RAND()`))
@@ -1331,7 +1251,7 @@ func TestComparisonOperators(t *testing.T) {
 			assert.Equal(t, "Daria López", items[0].Name)
 		}
 
-		if wrapper != "sqlite" && wrapper != "mssql" {
+		if wrapper != "mssql" {
 			// Test: regexp
 			{
 				var items []birthday

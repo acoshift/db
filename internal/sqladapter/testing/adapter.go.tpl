@@ -139,14 +139,6 @@ func TestPreparedStatementsCache(t *testing.T) {
 	// sets a limit on them.
 	sess.SetMaxOpenConns(100)
 
-	switch Adapter {
-	case "ql":
-		limit = 1000
-	case "sqlite":
-		// TODO: We'll probably be able to workaround this with a mutex on inserts.
-		t.Skip(`Skipped due to a "database is locked" problem with concurrent transactions. See https://github.com/mattn/go-sqlite3/issues/274`)
-	}
-
 	for i := 0; i < limit; i++ {
 		wg.Add(1)
 		go func(i int) {
