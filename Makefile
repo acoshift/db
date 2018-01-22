@@ -29,10 +29,7 @@ test-adapters: test-adapter-postgresql
 reset-db:
 	$(MAKE) -C postgresql reset-db
 
-test-main: reset-db
-	go test $(TEST_FLAGS) -v ./tests/...
-
-test: test-adapters test-libs test-main
+test: test-adapters test-libs
 
 test-adapter-%:
 	$(MAKE) -C $* test || exit 1;

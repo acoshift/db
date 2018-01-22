@@ -50,7 +50,7 @@ type item struct {
 // capacity.
 func NewCacheWithCapacity(capacity int) (*Cache, error) {
 	if capacity < 1 {
-		return nil, errors.New("Capacity must be greater than zero.")
+		return nil, errors.New("capacity must be greater than zero")
 	}
 	return &Cache{
 		cache:    make(map[string]*list.Element),
@@ -133,7 +133,7 @@ func (c *Cache) Clear() {
 func Hash(v interface{}) string {
 	q, err := hashstructure.Hash(v, nil)
 	if err != nil {
-		panic(fmt.Sprintf("Could not hash struct: ", err.Error()))
+		panic(fmt.Sprintf("Could not hash struct: %s", err.Error()))
 	}
 	return strconv.FormatUint(q, 10)
 }

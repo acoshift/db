@@ -36,11 +36,6 @@ type collection struct {
 	name string
 }
 
-var (
-	_ = sqladapter.Collection(&collection{})
-	_ = db.Collection(&collection{})
-)
-
 // newCollection binds *collection with sqladapter.
 func newCollection(d *database, name string) *collection {
 	c := &collection{

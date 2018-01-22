@@ -126,12 +126,6 @@ func RegisterAdapter(name string, adapter *AdapterFuncMap) {
 		panic(`db.RegisterAdapter() called twice for adapter: ` + name)
 	}
 	adapters[name] = adapter
-
-	db.RegisterAdapter(name, &db.AdapterFuncMap{
-		Open: func(settings db.ConnectionURL) (db.Database, error) {
-			return adapter.Open(settings)
-		},
-	})
 }
 
 // adapter returns SQL database functions.
