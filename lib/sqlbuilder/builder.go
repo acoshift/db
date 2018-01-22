@@ -315,14 +315,10 @@ func Map(item interface{}, options *MapOptions) ([]string, []interface{}, error)
 			}
 
 			fv.fields = append(fv.fields, fi.Name)
-			v, err := marshal(value)
-			if err != nil {
-				return nil, nil, err
-			}
 			if isZero && tagOmitEmpty {
-				v = sqlDefault
+				value = sqlDefault
 			}
-			fv.values = append(fv.values, v)
+			fv.values = append(fv.values, value)
 		}
 
 	case reflect.Map:
@@ -334,13 +330,7 @@ func Map(item interface{}, options *MapOptions) ([]string, []interface{}, error)
 		for i, keyV := range mkeys {
 			valv := itemV.MapIndex(keyV)
 			fv.fields[i] = fmt.Sprintf("%v", keyV.Interface())
-
-			v, err := marshal(valv.Interface())
-			if err != nil {
-				return nil, nil, err
-			}
-
-			fv.values[i] = v
+			fv.values[i] = valv.Interface()
 		}
 	default:
 		return nil, nil, ErrExpectingPointerToEitherMapOrStruct
@@ -527,16 +517,6 @@ func (iter *iterator) Close() (err error) {
 		iter.cursor = nil
 	}
 	return err
-}
-
-func marshal(v interface{}) (interface{}, error) {
-	if m, isMarshaler := v.(db.Marshaler); isMarshaler {
-		var err error
-		if v, err = m.MarshalDB(); err != nil {
-			return nil, err
-		}
-	}
-	return v, nil
 }
 
 func (fv *fieldValue) Len() int {

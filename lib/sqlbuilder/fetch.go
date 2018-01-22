@@ -173,10 +173,6 @@ func fetchResult(iter *iterator, itemT reflect.Type, columns []string) (reflect.
 
 			f := reflectx.FieldByIndexes(item, fi.Index)
 			values[i] = f.Addr().Interface()
-
-			if u, ok := values[i].(db.Unmarshaler); ok {
-				values[i] = scanner{u}
-			}
 		}
 
 		if converter, ok := iter.sess.(hasConvertValues); ok {
