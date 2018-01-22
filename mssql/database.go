@@ -20,7 +20,7 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // Package mssql wraps the github.com/go-sql-driver/mssql MySQL driver. See
-// https://upper.io/db.v3/mssql for documentation, particularities and usage
+// https://github.com/acoshift/db/mssql for documentation, particularities and usage
 // examples.
 package mssql
 
@@ -31,12 +31,12 @@ import (
 
 	"database/sql"
 
+	"github.com/acoshift/db"
+	"github.com/acoshift/db/internal/sqladapter"
+	"github.com/acoshift/db/internal/sqladapter/compat"
+	"github.com/acoshift/db/internal/sqladapter/exql"
+	"github.com/acoshift/db/lib/sqlbuilder"
 	_ "github.com/denisenkom/go-mssqldb" // MSSQL driver
-	"upper.io/db.v3"
-	"upper.io/db.v3/internal/sqladapter"
-	"upper.io/db.v3/internal/sqladapter/compat"
-	"upper.io/db.v3/internal/sqladapter/exql"
-	"upper.io/db.v3/lib/sqlbuilder"
 )
 
 // database is the actual implementation of Database

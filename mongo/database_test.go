@@ -34,7 +34,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/mgo.v2/bson"
-	"upper.io/db.v3"
+	"github.com/acoshift/db"
 )
 
 type artistType struct {

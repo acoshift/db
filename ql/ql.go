@@ -19,10 +19,10 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-package ql // import "upper.io/db.v3/ql"
+package ql // import "github.com/acoshift/db/ql"
 
 import (
-	"upper.io/db.v3/lib/sqlbuilder"
+	"github.com/acoshift/db/lib/sqlbuilder"
 )
 
 const sqlDriver = `ql`

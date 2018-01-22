@@ -24,9 +24,9 @@ package mssql
 import (
 	"database/sql"
 
-	"upper.io/db.v3"
-	"upper.io/db.v3/internal/sqladapter"
-	"upper.io/db.v3/lib/sqlbuilder"
+	"github.com/acoshift/db"
+	"github.com/acoshift/db/internal/sqladapter"
+	"github.com/acoshift/db/lib/sqlbuilder"
 )
 
 // table is the actual implementation of a collection.

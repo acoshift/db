@@ -3,8 +3,8 @@ package sqlbuilder
 import (
 	"testing"
 
+	"github.com/acoshift/db"
 	"github.com/stretchr/testify/assert"
-	"upper.io/db.v3"
 )
 
 func TestPlaceholderSimple(t *testing.T) {

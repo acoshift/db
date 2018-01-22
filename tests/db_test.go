@@ -34,13 +34,13 @@ import (
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
-	"upper.io/db.v3"
-	"upper.io/db.v3/mongo"
-	"upper.io/db.v3/mssql"
-	"upper.io/db.v3/mysql"
-	"upper.io/db.v3/postgresql"
-	"upper.io/db.v3/ql"
-	"upper.io/db.v3/sqlite"
+	"github.com/acoshift/db"
+	"github.com/acoshift/db/mongo"
+	"github.com/acoshift/db/mssql"
+	"github.com/acoshift/db/mysql"
+	"github.com/acoshift/db/postgresql"
+	"github.com/acoshift/db/ql"
+	"github.com/acoshift/db/sqlite"
 )
 
 var wrappers = []string{

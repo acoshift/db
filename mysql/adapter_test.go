@@ -32,9 +32,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/acoshift/db/internal/sqladapter"
+	"github.com/acoshift/db/lib/sqlbuilder"
 	"github.com/stretchr/testify/assert"
-	"upper.io/db.v3/internal/sqladapter"
-	"upper.io/db.v3/lib/sqlbuilder"
 )
 
 const (

@@ -20,17 +20,17 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // Package mongo wraps the gopkg.in/mgo.v2 MongoDB driver. See
-// https://upper.io/db.v3/mongo for documentation, particularities and usage
+// https://github.com/acoshift/db/mongo for documentation, particularities and usage
 // examples.
-package mongo // import "upper.io/db.v3/mongo"
+package mongo // import "github.com/acoshift/db/mongo"
 
 import (
 	"strings"
 	"sync"
 	"time"
 
+	"github.com/acoshift/db"
 	"gopkg.in/mgo.v2"
-	"upper.io/db.v3"
 )
 
 // Adapter holds the name of the mongodb adapter.

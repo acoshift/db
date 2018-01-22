@@ -44,12 +44,12 @@ env:
     - TEST_CMD="make test-adapters"
 
 install:
-  - mkdir -p $GOPATH/src/upper.io
-  - mv $PWD $GOPATH/src/upper.io/db.v3
-  - cd $GOPATH/src/upper.io/db.v3
+  - mkdir -p $GOPATH/src/github.com/acoshift
+  - mv $PWD $GOPATH/src/github.com/acoshift/db
+  - cd $GOPATH/src/github.com/acoshift/db
   - go get -t -v -d ./...
   - go get -v github.com/cznic/ql/ql
-  - export TRAVIS_BUILD_DIR=$GOPATH/src/upper.io/db.v3
+  - export TRAVIS_BUILD_DIR=$GOPATH/src/github.com/acoshift/db
 
 before_script:
   - docker exec -it mysql bash -c 'mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -u root mysql'

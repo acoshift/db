@@ -34,10 +34,10 @@ import (
 	"strconv"
 	"strings"
 
-	"upper.io/db.v3"
-	"upper.io/db.v3/internal/sqladapter/compat"
-	"upper.io/db.v3/internal/sqladapter/exql"
-	"upper.io/db.v3/lib/reflectx"
+	"github.com/acoshift/db"
+	"github.com/acoshift/db/internal/sqladapter/compat"
+	"github.com/acoshift/db/internal/sqladapter/exql"
+	"github.com/acoshift/db/lib/reflectx"
 )
 
 // MapOptions represents options for the mapper.
