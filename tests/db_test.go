@@ -31,20 +31,17 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/assert"
-	"gopkg.in/mgo.v2"
-	"gopkg.in/mgo.v2/bson"
 	"github.com/acoshift/db"
-	"github.com/acoshift/db/mongo"
 	"github.com/acoshift/db/mssql"
 	"github.com/acoshift/db/mysql"
 	"github.com/acoshift/db/postgresql"
 	"github.com/acoshift/db/ql"
 	"github.com/acoshift/db/sqlite"
+	"github.com/stretchr/testify/assert"
+	"gopkg.in/mgo.v2/bson"
 )
 
 var wrappers = []string{
-	mongo.Adapter,
 	mssql.Adapter,
 	mysql.Adapter,
 	postgresql.Adapter,
@@ -81,12 +78,6 @@ func init() {
 	settings = map[string]db.ConnectionURL{
 		`sqlite`: &sqlite.ConnectionURL{
 			Database: `sqlite3-test.db`,
-		},
-		`mongo`: &mongo.ConnectionURL{
-			Database: `upperio_tests`,
-			Host:     host,
-			User:     `upperio_tests`,
-			Password: `upperio_secret`,
 		},
 		`mysql`: &mysql.ConnectionURL{
 			Database: `upperio_tests`,
@@ -125,24 +116,6 @@ func init() {
 }
 
 var setupFn = map[string]func(driver interface{}) error{
-	`mongo`: func(driver interface{}) error {
-		if mgod, ok := driver.(*mgo.Session); ok {
-			var col *mgo.Collection
-			col = mgod.DB("upperio_tests").C("birthdays")
-			col.DropCollection()
-
-			col = mgod.DB("upperio_tests").C("fibonacci")
-			col.DropCollection()
-
-			col = mgod.DB("upperio_tests").C("is_even")
-			col.DropCollection()
-
-			col = mgod.DB("upperio_tests").C("CaSe_TesT")
-			col.DropCollection()
-			return nil
-		}
-		return errDriverErr
-	},
 	`postgresql`: func(driver interface{}) error {
 		if sqld, ok := driver.(*sql.DB); ok {
 			var err error
@@ -630,8 +603,6 @@ func TestSimpleCRUD(t *testing.T) {
 
 			var res db.Result
 			switch wrapper {
-			case `mongo`:
-				res = col.Find(db.Cond{"_id": id.(bson.ObjectId)})
 			case `ql`:
 				res = col.Find(db.Cond{"id()": id})
 			default:
@@ -1468,7 +1439,7 @@ func TestComparisonOperators(t *testing.T) {
 			var q db.Result
 
 			switch wrapper {
-			case "ql", "mongo":
+			case "ql":
 				q = birthdays.Find(db.And(
 					db.Cond{"name": db.Like(".*ari.*")},
 					db.Cond{"name": db.NotLike(".*Smith")},

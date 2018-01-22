@@ -24,15 +24,14 @@ test-internal:
 
 test-libs: test-lib test-internal
 
-test-adapters: test-adapter-postgresql test-adapter-mysql test-adapter-sqlite test-adapter-mssql test-adapter-ql test-adapter-mongo
+test-adapters: test-adapter-postgresql test-adapter-mysql test-adapter-sqlite test-adapter-mssql test-adapter-ql
 
 reset-db:
 	$(MAKE) -C postgresql reset-db && \
 	$(MAKE) -C mysql reset-db && \
 	$(MAKE) -C sqlite reset-db && \
 	$(MAKE) -C mssql reset-db && \
-	$(MAKE) -C ql reset-db && \
-	$(MAKE) -C mongo reset-db
+	$(MAKE) -C ql reset-db
 
 test-main: reset-db
 	go test $(TEST_FLAGS) -v ./tests/...

@@ -12,18 +12,13 @@ go:
 
 services:
   - docker
-  - mongodb
   - postgresql
 
 addons:
   postgresql: 9.5
   apt:
-    sources:
-    - mongodb-3.0-precise
     packages:
     - freetds-bin
-    - mongodb-org-server
-    - mongodb-org-shell
 
 before_install:
   - sudo service mysql stop

@@ -9,7 +9,7 @@ Go that provides a common interface to work with different data sources such as
 [PostgreSQL](https://github.com/acoshift/db/postgresql),
 [MySQL](https://github.com/acoshift/db/mysql), [SQLite](https://github.com/acoshift/db/sqlite),
 [MSSQL](https://github.com/acoshift/db/mssql),
-[QL](https://github.com/acoshift/db/ql) and [MongoDB](https://github.com/acoshift/db/mongodb).
+[QL](https://github.com/acoshift/db/ql).
 
 ```
 go get github.com/acoshift/db
