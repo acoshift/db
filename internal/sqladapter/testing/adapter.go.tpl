@@ -54,20 +54,21 @@ func TestMain(m *testing.M) {
 }
 
 func mustOpen() sqlbuilder.Database {
-	sess, err := Open(settings)
+	db, err := sql.Open("postgres", settings)
 	if err != nil {
 		panic(err.Error())
 	}
-	return sess
+	return New(db)
 }
 
 func TestOpenMustSucceed(t *testing.T) {
-	sess, err := Open(settings)
+	db, err := sql.Open("postgres", settings)
 	assert.NoError(t, err)
-	assert.NotNil(t, sess)
+	assert.NotNil(t, db)
 
+	sess := New(db)
 	assert.NoError(t, cleanUpCheck(sess))
-	assert.NoError(t, sess.Driver().(*sql.DB).Close())
+	assert.NoError(t, db.Close())
 }
 
 func TestPreparedStatementsCache(t *testing.T) {

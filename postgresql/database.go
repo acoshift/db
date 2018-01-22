@@ -48,29 +48,7 @@ type database struct {
 
 	sqlbuilder.SQLBuilder
 
-	connURL string
-	mu      sync.Mutex
-}
-
-// newDatabase creates a new *database session for internal use.
-func newDatabase(settings string) *database {
-	return &database{
-		connURL: settings,
-	}
-}
-
-// ConnectionURL returns this database session's connection URL, if any.
-func (d *database) ConnectionURL() string {
-	return d.connURL
-}
-
-// Open attempts to open a connection with the database server.
-func (d *database) Open(connURL string) error {
-	if connURL == "" {
-		return db.ErrMissingConnURL
-	}
-	d.connURL = connURL
-	return d.open()
+	mu sync.Mutex
 }
 
 // NewTx begins a transaction block with the given context.
@@ -105,36 +83,9 @@ func (d *database) Collections() (collections []string, err error) {
 	return collections, nil
 }
 
-// open attempts to establish a connection with the PostgreSQL server.
-func (d *database) open() error {
-	// Binding with sqladapter's logic.
-	d.BaseDatabase = sqladapter.NewBaseDatabase(d)
-
-	// Binding with sqlbuilder.
-	d.SQLBuilder = sqlbuilder.WithSession(d.BaseDatabase, template)
-
-	connFn := func() error {
-		sess, err := sql.Open("postgres", d.ConnectionURL())
-		if err == nil {
-			sess.SetConnMaxLifetime(db.DefaultSettings.ConnMaxLifetime())
-			sess.SetMaxIdleConns(db.DefaultSettings.MaxIdleConns())
-			sess.SetMaxOpenConns(db.DefaultSettings.MaxOpenConns())
-			d.BaseDatabase.BindSession(sess)
-			return nil
-		}
-		return err
-	}
-
-	if err := d.BaseDatabase.WaitForConnection(connFn); err != nil {
-		return err
-	}
-
-	return nil
-}
-
 // Clone creates a copy of the database session on the given context.
 func (d *database) clone(ctx context.Context, checkConn bool) (*database, error) {
-	clone := newDatabase(d.connURL)
+	clone := &database{}
 
 	var err error
 	clone.BaseDatabase, err = d.NewClone(clone, checkConn)

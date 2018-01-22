@@ -1080,12 +1080,13 @@ func TestBinaryMode_Issue391(t *testing.T) {
 	settingsWithBinaryMode := settings
 	settingsWithBinaryMode += "&binary_parameters=yes"
 
-	sess, err := Open(settingsWithBinaryMode)
+	db, err := sql.Open("postgres", settingsWithBinaryMode)
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer sess.Driver().(*sql.DB).Close()
+	defer db.Close()
 
+	sess := New(db)
 	testPostgreSQLTypes(t, sess)
 }
 

@@ -49,9 +49,6 @@ type PartialDatabase interface {
 	// Collections returns a list of non-system tables from the database.
 	Collections() ([]string, error)
 
-	// Open opens a new connection
-	Open(string) error
-
 	// TableExists returns an error if the given table does not exist.
 	TableExists(name string) error
 
@@ -64,9 +61,6 @@ type PartialDatabase interface {
 	// CompileStatement transforms an internal statement into a format
 	// database/sql can understand.
 	CompileStatement(stmt *exql.Statement, args []interface{}) (string, []interface{})
-
-	// ConnectionURL returns the database's connection URL, if any.
-	ConnectionURL() string
 
 	// Err wraps specific database errors (given in string form) and transforms them
 	// into error values.

@@ -33,9 +33,6 @@ type Database interface {
 	//  internalSQLDriver := sess.Driver().(*sql.DB)
 	Driver() interface{}
 
-	// Open attempts to establish a connection with a DBMS.
-	Open(string) error
-
 	// Collection returns a collection reference given a table name.
 	Collection(string) Collection
 
@@ -44,9 +41,6 @@ type Database interface {
 
 	// Name returns the name of the active database.
 	Name() string
-
-	// ConnectionURL returns the data used to set up the adapter.
-	ConnectionURL() string
 
 	// ClearCache clears all the cache mechanisms the adapter is using.
 	ClearCache()

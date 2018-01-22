@@ -37,27 +37,13 @@ func init() {
 	sqlbuilder.RegisterAdapter(Adapter, &sqlbuilder.AdapterFuncMap{
 		New:   New,
 		NewTx: NewTx,
-		Open:  Open,
 	})
-}
-
-// Open opens a new connection with the PostgreSQL server. The returned session
-// is validated first by Ping and then with a test query before being returned.
-// You may call Open() just once and use it on multiple goroutines on a
-// long-running program. See https://golang.org/pkg/database/sql/#Open and
-// http://go-database-sql.org/accessing.html
-func Open(settings string) (sqlbuilder.Database, error) {
-	d := newDatabase(settings)
-	if err := d.Open(settings); err != nil {
-		return nil, err
-	}
-	return d, nil
 }
 
 // NewTx wraps a regular *sql.Tx transaction and returns a new upper-db
 // transaction backed by it.
 func NewTx(sqlTx *sql.Tx) (sqlbuilder.Tx, error) {
-	d := newDatabase("")
+	d := &database{}
 
 	// Binding with sqladapter's logic.
 	d.BaseDatabase = sqladapter.NewBaseDatabase(d)
@@ -76,7 +62,7 @@ func NewTx(sqlTx *sql.Tx) (sqlbuilder.Tx, error) {
 // New wraps a regular *sql.DB session and creates a new upper-db session
 // backed by it.
 func New(sess *sql.DB) sqlbuilder.Database {
-	d := newDatabase("")
+	d := &database{}
 
 	// Binding with sqladapter's logic.
 	d.BaseDatabase = sqladapter.NewBaseDatabase(d)
