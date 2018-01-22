@@ -9,14 +9,17 @@ import (
 )
 
 type inserterQuery struct {
-	table          string
-	enqueuedValues [][]interface{}
-	returning      []exql.Fragment
-	columns        []exql.Fragment
-	values         []*exql.Values
-	arguments      []interface{}
-	extra          string
-	amendFn        func(string) string
+	table           string
+	enqueuedValues  [][]interface{}
+	conflicts       []exql.Fragment
+	conflictSet     *exql.ColumnValues
+	conflictSetArgs []interface{}
+	returning       []exql.Fragment
+	columns         []exql.Fragment
+	values          []*exql.Values
+	args            []interface{}
+	extra           string
+	amendFn         func(string) string
 }
 
 func (iq *inserterQuery) processValues() ([]*exql.Values, []interface{}, error) {
@@ -84,6 +87,11 @@ func (iq *inserterQuery) statement() *exql.Statement {
 		stmt.Columns = exql.JoinColumns(iq.columns...)
 	}
 
+	if iq.conflicts != nil {
+		stmt.Conflict = exql.JoinColumns(iq.conflicts...)
+		stmt.ConflictSet = iq.conflictSet
+	}
+
 	if len(iq.returning) > 0 {
 		stmt.Returning = exql.ReturningColumns(iq.returning...)
 	}
@@ -91,6 +99,13 @@ func (iq *inserterQuery) statement() *exql.Statement {
 	stmt.SetAmendment(iq.amendFn)
 
 	return stmt
+}
+
+func (iq *inserterQuery) arguments() []interface{} {
+	return joinArguments(
+		iq.args,
+		iq.conflictSetArgs,
+	)
 }
 
 type inserter struct {
@@ -141,7 +156,65 @@ func (ins *inserter) Arguments() []interface{} {
 	if err != nil {
 		return nil
 	}
-	return iq.arguments
+	return iq.arguments()
+}
+
+func (ins *inserter) OnConflict(columns ...string) Inserter {
+	return ins.frame(func(iq *inserterQuery) error {
+		if len(columns) == 0 {
+			iq.conflicts = []exql.Fragment{}
+		} else {
+			columnsToFragments(&iq.conflicts, columns)
+		}
+		return nil
+	})
+}
+
+func (ins *inserter) DoNothing() Inserter {
+	return ins.frame(func(iq *inserterQuery) error {
+		iq.conflictSet = nil
+		iq.conflictSetArgs = nil
+		return nil
+	})
+}
+
+func (ins *inserter) DoUpdateSet(terms ...interface{}) Inserter {
+	return ins.frame(func(iq *inserterQuery) error {
+		if iq.conflictSet == nil {
+			iq.conflictSet = &exql.ColumnValues{}
+		}
+
+		if len(terms) == 1 {
+			ff, vv, err := Map(terms[0], nil)
+			if err == nil && len(ff) > 0 {
+				cvs := make([]exql.Fragment, 0, len(ff))
+				args := make([]interface{}, 0, len(vv))
+
+				for i := range ff {
+					cv := &exql.ColumnValue{
+						Column:   exql.ColumnWithName(ff[i]),
+						Operator: ins.SQLBuilder().t.AssignmentOperator,
+					}
+
+					var localArgs []interface{}
+					cv.Value, localArgs = ins.SQLBuilder().t.PlaceholderValue(vv[i])
+
+					args = append(args, localArgs...)
+					cvs = append(cvs, cv)
+				}
+
+				iq.conflictSet.Insert(cvs...)
+				iq.conflictSetArgs = append(iq.conflictSetArgs, args...)
+
+				return nil
+			}
+		}
+
+		cv, arguments := ins.SQLBuilder().t.setColumnValues(terms)
+		iq.conflictSet.Insert(cv.ColumnValues...)
+		iq.conflictSetArgs = append(iq.conflictSetArgs, arguments...)
+		return nil
+	})
 }
 
 func (ins *inserter) Returning(columns ...string) Inserter {
@@ -160,7 +233,7 @@ func (ins *inserter) ExecContext(ctx context.Context) (sql.Result, error) {
 	if err != nil {
 		return nil, err
 	}
-	return ins.SQLBuilder().sess.StatementExec(ctx, iq.statement(), iq.arguments...)
+	return ins.SQLBuilder().sess.StatementExec(ctx, iq.statement(), iq.arguments()...)
 }
 
 func (ins *inserter) Prepare() (*sql.Stmt, error) {
@@ -184,7 +257,7 @@ func (ins *inserter) QueryContext(ctx context.Context) (*sql.Rows, error) {
 	if err != nil {
 		return nil, err
 	}
-	return ins.SQLBuilder().sess.StatementQuery(ctx, iq.statement(), iq.arguments...)
+	return ins.SQLBuilder().sess.StatementQuery(ctx, iq.statement(), iq.arguments()...)
 }
 
 func (ins *inserter) QueryRow() (*sql.Row, error) {
@@ -196,7 +269,7 @@ func (ins *inserter) QueryRowContext(ctx context.Context) (*sql.Row, error) {
 	if err != nil {
 		return nil, err
 	}
-	return ins.SQLBuilder().sess.StatementQueryRow(ctx, iq.statement(), iq.arguments...)
+	return ins.SQLBuilder().sess.StatementQueryRow(ctx, iq.statement(), iq.arguments()...)
 }
 
 func (ins *inserter) Iterator() Iterator {
@@ -243,7 +316,7 @@ func (ins *inserter) build() (*inserterQuery, error) {
 		return nil, err
 	}
 	ret := iq.(*inserterQuery)
-	ret.values, ret.arguments, err = ret.processValues()
+	ret.values, ret.args, err = ret.processValues()
 	if err != nil {
 		return nil, err
 	}

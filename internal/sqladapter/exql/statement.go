@@ -23,6 +23,8 @@ type Statement struct {
 	GroupBy      Fragment
 	Joins        Fragment
 	Where        Fragment
+	Conflict     Fragment
+	ConflictSet  Fragment
 	Returning    Fragment
 
 	Limit
@@ -35,17 +37,20 @@ type Statement struct {
 }
 
 type statementT struct {
-	Table        string
-	Database     string
-	Columns      string
-	Values       string
-	Distinct     bool
-	ColumnValues string
-	OrderBy      string
-	GroupBy      string
-	Where        string
-	Joins        string
-	Returning    string
+	Table           string
+	Database        string
+	Columns         string
+	Values          string
+	Distinct        bool
+	ColumnValues    string
+	OrderBy         string
+	GroupBy         string
+	Where           string
+	Joins           string
+	Conflict        bool
+	ConflictColumns string
+	ConflictSet     string
+	Returning       string
 	Limit
 	Offset
 }
@@ -135,6 +140,18 @@ func (s *Statement) Compile(layout *Template) (compiled string, err error) {
 	data.Where, err = layout.doCompile(s.Where)
 	if err != nil {
 		return "", err
+	}
+
+	if s.Conflict != nil {
+		data.Conflict = true
+		data.ConflictColumns, err = layout.doCompile(s.Conflict)
+		if err != nil {
+			return "", err
+		}
+		data.ConflictSet, err = layout.doCompile(s.ConflictSet)
+		if err != nil {
+			return "", err
+		}
 	}
 
 	data.Returning, err = layout.doCompile(s.Returning)

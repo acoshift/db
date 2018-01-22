@@ -132,6 +132,14 @@ const (
       {{if .Columns }}({{.Columns}}){{end}}
     VALUES
       {{.Values}}
+    {{if .Conflict}}
+      ON CONFLICT {{if .ConflictColumns}}({{.ConflictColumns}}){{end}}
+      {{if .ConflictSet}}
+        DO UPDATE SET {{.ConflictSet}}
+      {{else}}
+        DO NOTHING
+      {{end}}
+    {{end}}
     {{if .Returning}}
       RETURNING {{.Returning}}
     {{end}}

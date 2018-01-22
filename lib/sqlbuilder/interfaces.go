@@ -398,6 +398,15 @@ type Inserter interface {
 	// Arguments returns the arguments that are prepared for this query.
 	Arguments() []interface{}
 
+	// OnConflictDoNothing represents the ON CONFLICT clause.
+	OnConflict(columns ...string) Inserter
+
+	// DoNothing represents the ON CONFLICT DO NOTHING clause.
+	DoNothing() Inserter
+
+	// DoUpdateSet represents the ON CONFLICT DO UPDATE SET clause.
+	DoUpdateSet(...interface{}) Inserter
+
 	// Returning represents a RETURNING clause.
 	//
 	// RETURNING specifies which columns should be returned after INSERT.

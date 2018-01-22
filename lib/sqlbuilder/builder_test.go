@@ -5,8 +5,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/acoshift/db"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestSelect(t *testing.T) {
@@ -1080,6 +1080,36 @@ func TestInsert(t *testing.T) {
 	assert.Equal(
 		`INSERT INTO "artist" VALUES (default)`,
 		b.InsertInto("artist").String(),
+	)
+
+	assert.Equal(
+		`INSERT INTO "artist" ("id", "name") VALUES ($1, $2) ON CONFLICT DO NOTHING`,
+		b.InsertInto("artist").Columns("id", "name").Values("Chavela Vargas", 12).OnConflict().DoNothing().String(),
+	)
+
+	assert.Equal(
+		`INSERT INTO "artist" ("id", "name") VALUES ($1, $2) ON CONFLICT ("id") DO NOTHING`,
+		b.InsertInto("artist").Columns("id", "name").Values(12, "Chavela Vargas").OnConflict("id").DoNothing().String(),
+	)
+
+	assert.Equal(
+		`INSERT INTO "artist" ("id", "name") VALUES ($1, $2) ON CONFLICT DO UPDATE SET "name" = $3`,
+		b.InsertInto("artist").
+			Columns("id", "name").
+			Values(12, "Chavela Vargas").
+			OnConflict().
+			DoUpdateSet(map[string]interface{}{"name": "Chavela Vargas"}).
+			String(),
+	)
+
+	assert.Equal(
+		`INSERT INTO "artist" ("id", "name") VALUES ($1, $2) ON CONFLICT ("id") DO UPDATE SET "name" = $3`,
+		b.InsertInto("artist").
+			Columns("id", "name").
+			Values(12, "Chavela Vargas").
+			OnConflict("id").
+			DoUpdateSet(map[string]interface{}{"name": "Chavela Vargas"}).
+			String(),
 	)
 }
 

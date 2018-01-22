@@ -202,6 +202,16 @@ func TestTemplateInsert(t *testing.T) {
 		`INSERT INTO "artist" ("name", "id") VALUES ($1, $2)`,
 		b.InsertInto("artist").Columns("name", "id").Values("Chavela Vargas", 12).String(),
 	)
+
+	assert.Equal(
+		`INSERT INTO "artist" ("id", "name") VALUES ($1, $2) ON CONFLICT DO NOTHING`,
+		b.InsertInto("artist").Columns("id", "name").Values("Chavela Vargas", 12).OnConflict().DoNothing().String(),
+	)
+
+	assert.Equal(
+		`INSERT INTO "artist" ("id", "name") VALUES ($1, $2) ON CONFLICT ("id") DO NOTHING`,
+		b.InsertInto("artist").Columns("id", "name").Values("Chavela Vargas", 12).OnConflict("id").DoNothing().String(),
+	)
 }
 
 func TestTemplateUpdate(t *testing.T) {
